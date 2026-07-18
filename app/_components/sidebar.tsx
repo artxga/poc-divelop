@@ -35,6 +35,13 @@ const NAV_ITEMS = [
     description: "Biblioteca de indicadores",
   },
   {
+    label: "Clientes",
+    href: "/clientes",
+    icon: Users,
+    description: "Gestión de clientes y usuarios",
+    roles: ["admin", "consultor"],
+  },
+  {
     label: "Proyectos",
     href: "/proyectos",
     icon: FolderOpen,
@@ -89,6 +96,9 @@ export function Sidebar() {
           Módulos
         </p>
         {NAV_ITEMS.map((item) => {
+          // @ts-ignore
+          if (item.roles && !item.roles.includes(user.rol)) return null;
+
           const isActive = pathname.startsWith(item.href);
           const Icon = item.icon;
           return (
