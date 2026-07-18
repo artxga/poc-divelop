@@ -3,7 +3,7 @@
 import { use, useState } from "react";
 import { notFound } from "next/navigation";
 import Link from "next/link";
-import { PROYECTOS, FORMULARIO_TEMPLATES, FORMULARIOS_ENVIADOS, ESTADO_FORM_CONFIG, ESTANDAR_CONFIG, USUARIOS } from "@/app/_lib/mock-data";
+import { PROYECTOS, FORMULARIO_TEMPLATES, FORMULARIOS_ENVIADOS, ESTANDAR_CONFIG, USUARIOS } from "@/app/_lib/mock-data";
 import { useAuth } from "@/app/_lib/auth-context";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -19,7 +19,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
-import { ChevronLeft, FileText, Plus, User } from "lucide-react";
+import { ChevronLeft, FolderOpen, Plus, Users, ChevronRight } from "lucide-react";
 
 export default function ProyectoDetailPage({ params }: PageProps<"/proyectos/[id]">) {
   const { id } = use(params);
@@ -31,10 +31,14 @@ export default function ProyectoDetailPage({ params }: PageProps<"/proyectos/[id
 
   const isAdminOrConsultor = user.rol === "admin" || user.rol === "consultor";
   
-  const enviosFiltrados = FORMULARIOS_ENVIADOS.filter((f) => {
-    if (f.proyectoId !== id) return false;
+  // Encontrar qué templates tienen envíos para el proyecto actual
+  const enviosDelProyecto = FORMULARIOS_ENVIADOS.filter(f => f.proyectoId === id);
+  const templatesDelProyecto = FORMULARIO_TEMPLATES.filter(t => t.proyectoId === id);
+
+  const templatesFiltrados = templatesDelProyecto.filter((template) => {
     if (isAdminOrConsultor) return true;
-    return f.usuarioEmail === user.email;
+    // Si es cliente, solo ve el template si tiene al menos un envío asignado a su correo en este template
+    return enviosDelProyecto.some(e => e.templateId === template.id && e.usuarioEmail === user.email);
   });
 
   const [modalOpen, setModalOpen] = useState(false);
@@ -53,7 +57,7 @@ export default function ProyectoDetailPage({ params }: PageProps<"/proyectos/[id
         <div>
           <h1 className="text-2xl font-bold tracking-tight">Formularios del Proyecto</h1>
           <p className="text-sm text-muted-foreground mt-0.5">
-            Selecciona un formulario asignado para responder o revisar
+            Selecciona un formulario para ver los usuarios asignados
           </p>
         </div>
         {isAdminOrConsultor && (
@@ -63,33 +67,37 @@ export default function ProyectoDetailPage({ params }: PageProps<"/proyectos/[id
         )}
       </div>
 
-      <div className="grid gap-4">
-        {enviosFiltrados.length === 0 ? (
-          <div className="p-8 text-center border border-dashed border-border/50 rounded-xl bg-card/30">
-            <p className="text-muted-foreground">No hay formularios asignados o creados para este proyecto.</p>
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+        {templatesFiltrados.length === 0 ? (
+          <div className="col-span-full p-8 text-center border border-dashed border-border/50 rounded-xl bg-card/30">
+            <p className="text-muted-foreground">No hay formularios creados o asignados para este proyecto.</p>
           </div>
         ) : (
-          enviosFiltrados.map((envio) => {
-            const estadoCfg = ESTADO_FORM_CONFIG[envio.estado];
-            const template = FORMULARIO_TEMPLATES.find(t => t.id === envio.templateId);
-            const userAsignado = USUARIOS.find(u => u.email === envio.usuarioEmail);
-            
+          templatesFiltrados.map((template) => {
+            const enviosDeEsteTemplate = enviosDelProyecto.filter(e => e.templateId === template.id);
+            const enviosVisibles = isAdminOrConsultor 
+              ? enviosDeEsteTemplate 
+              : enviosDeEsteTemplate.filter(e => e.usuarioEmail === user.email);
+              
+            const aprobados = enviosVisibles.filter(e => e.estado === "aprobado").length;
+            const progresoPromedio = enviosVisibles.length > 0
+              ? Math.round(enviosVisibles.reduce((acc, e) => acc + e.progreso, 0) / enviosVisibles.length)
+              : 0;
+
             return (
-              <Link key={envio.id} href={`/formularios/${envio.id}`} className="block group">
-                <Card className="border-border/50 bg-card/60 backdrop-blur-sm hover:bg-card/80 hover:border-emerald-500/30 transition-all hover:shadow-lg hover:shadow-emerald-500/5">
-                  <CardContent className="p-5 flex flex-col sm:flex-row sm:items-center gap-5">
-                    <div className="w-12 h-12 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center shrink-0 group-hover:bg-emerald-500/20 transition-colors">
-                      <FileText className="w-6 h-6 text-emerald-400" />
+              <Link key={template.id} href={`/proyectos/${proyecto.id}/formularios/${template.id}`} className="block group">
+                <Card className="border-border/50 bg-card/60 backdrop-blur-sm hover:bg-card/80 hover:border-emerald-500/30 transition-all hover:shadow-lg hover:shadow-emerald-500/5 h-full">
+                  <CardContent className="p-5 flex flex-col h-full">
+                    <div className="flex items-start justify-between mb-4">
+                      <div className="w-11 h-11 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center shrink-0 group-hover:bg-emerald-500/20 transition-colors">
+                        <FolderOpen className="w-5 h-5 text-emerald-400" />
+                      </div>
+                      <ChevronRight className="w-5 h-5 text-muted-foreground group-hover:text-emerald-400 transition-colors" />
                     </div>
                     <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2 mb-1.5">
-                        <h2 className="font-semibold text-base truncate">{template?.nombre}</h2>
-                        <span className={`shrink-0 text-xs px-2 py-0.5 rounded-full border ${estadoCfg.color}`}>
-                          {estadoCfg.label}
-                        </span>
-                      </div>
-                      <div className="flex flex-wrap gap-1.5 mb-2">
-                        {template?.estandares.map((est) => {
+                      <h2 className="font-semibold text-base mb-1.5 truncate">{template.nombre}</h2>
+                      <div className="flex flex-wrap gap-1.5 mb-3">
+                        {template.estandares.map((est) => {
                           const cfg = ESTANDAR_CONFIG[est as keyof typeof ESTANDAR_CONFIG];
                           return (
                             <span key={est} className={`text-xs px-2 py-0.5 rounded-full border ${cfg.border} ${cfg.bg} ${cfg.color} font-medium`}>
@@ -98,19 +106,22 @@ export default function ProyectoDetailPage({ params }: PageProps<"/proyectos/[id
                           );
                         })}
                       </div>
-                      <p className="text-xs text-muted-foreground flex items-center gap-1.5">
-                        <User className="w-3.5 h-3.5" />
-                        Asignado a: <span className="font-medium text-foreground">{userAsignado?.nombre || envio.usuarioEmail}</span>
+                      <p className="text-xs text-muted-foreground flex items-center gap-1.5 mb-4">
+                        <Users className="w-3.5 h-3.5" />
+                        {enviosVisibles.length} {enviosVisibles.length === 1 ? 'instancia asignada' : 'instancias asignadas'}
                       </p>
                     </div>
-                    <div className="w-full sm:w-48 shrink-0">
+                    
+                    <div className="w-full mt-auto pt-4 border-t border-border/50">
                       <div className="flex items-center justify-between mb-1.5">
-                        <span className="text-xs text-muted-foreground">Progreso de llenado</span>
-                        <span className={`text-xs font-semibold ${envio.progreso >= 80 ? "text-emerald-400" : envio.progreso >= 50 ? "text-amber-400" : "text-red-400"}`}>
-                          {envio.progreso}%
+                        <span className="text-xs text-muted-foreground">
+                          {aprobados} de {enviosVisibles.length} aprobados
+                        </span>
+                        <span className={`text-xs font-semibold ${progresoPromedio >= 80 ? "text-emerald-400" : progresoPromedio >= 50 ? "text-amber-400" : "text-red-400"}`}>
+                          {progresoPromedio}% promedio
                         </span>
                       </div>
-                      <Progress value={envio.progreso} className="h-2 bg-secondary" />
+                      <Progress value={progresoPromedio} className="h-2 bg-secondary" />
                     </div>
                   </CardContent>
                 </Card>
@@ -125,7 +136,7 @@ export default function ProyectoDetailPage({ params }: PageProps<"/proyectos/[id
           <DialogHeader>
             <DialogTitle>Nuevo Formulario</DialogTitle>
             <DialogDescription>
-              Crea un formulario y se generará una instancia para cada usuario seleccionado.
+              Crea un formulario base y se generará una instancia para cada usuario seleccionado.
             </DialogDescription>
           </DialogHeader>
           <div className="grid gap-4 py-2">
@@ -145,9 +156,9 @@ export default function ProyectoDetailPage({ params }: PageProps<"/proyectos/[id
             </div>
             <div className="space-y-1.5">
               <Label>Usuarios a Enviar</Label>
-              <div className="space-y-2 mt-2 border border-border/50 rounded-lg p-3 bg-secondary/20">
+              <div className="space-y-2 mt-2 border border-border/50 rounded-lg p-3 bg-secondary/20 max-h-[150px] overflow-y-auto">
                 {USUARIOS.filter(u => u.clienteId === proyecto.clienteId).map(u => (
-                  <label key={u.id} className="flex items-center gap-2 cursor-pointer">
+                  <label key={u.id} className="flex items-center gap-2 cursor-pointer p-1 hover:bg-secondary/40 rounded">
                     <Checkbox /> 
                     <div className="flex flex-col">
                       <span className="text-sm">{u.nombre}</span>
@@ -161,7 +172,7 @@ export default function ProyectoDetailPage({ params }: PageProps<"/proyectos/[id
           <DialogFooter>
             <Button variant="outline" onClick={() => setModalOpen(false)}>Cancelar</Button>
             <Button className="bg-emerald-600 hover:bg-emerald-500 text-white" onClick={() => setModalOpen(false)}>
-              Enviar Formularios
+              Crear y Enviar
             </Button>
           </DialogFooter>
         </DialogContent>

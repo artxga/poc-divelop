@@ -172,11 +172,11 @@ export default function FormularioDetailPage({ params }: PageProps<"/formularios
     <div className="space-y-5 h-full flex flex-col">
       {/* Breadcrumb */}
       <div className="flex items-center gap-2 shrink-0">
-        <Link href={`/proyectos/${envio.proyectoId}`} className="flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground transition-colors">
-          <ChevronLeft className="w-3.5 h-3.5" /> {proyecto?.nombre}
+        <Link href={`/proyectos/${envio.proyectoId}/formularios/${template?.id}`} className="flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground transition-colors">
+          <ChevronLeft className="w-3.5 h-3.5" /> Envíos de {template?.nombre}
         </Link>
         <span className="text-muted-foreground">/</span>
-        <span className="text-sm font-medium truncate">{template?.nombre}</span>
+        <span className="text-sm font-medium truncate">{userAsignado?.nombre || envio.usuarioEmail}</span>
       </div>
 
       {/* Header */}
