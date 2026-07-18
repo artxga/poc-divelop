@@ -2,23 +2,23 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { CLIENTES, USUARIOS, PROYECTOS } from "@/app/_lib/mock-data";
+import { CLIENTS, USERS, PROJECTS } from "@/app/_lib/mock-data";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Users, Briefcase, Plus, ChevronRight, Building } from "lucide-react";
+import { Users as UsersIcon, Briefcase, Plus, ChevronRight, Building } from "lucide-react";
 
-export default function ClientesPage() {
+export default function ClientsPage() {
   const [modalOpen, setModalOpen] = useState(false);
-  const [nombre, setNombre] = useState("");
+  const [name, setName] = useState("");
 
   const handleSave = () => {
     // In a real app this would save to backend
     alert("Cliente creado con éxito");
     setModalOpen(false);
-    setNombre("");
+    setName("");
   };
 
   return (
@@ -36,12 +36,12 @@ export default function ClientesPage() {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        {CLIENTES.map((cliente) => {
-          const usuariosDelCliente = USUARIOS.filter(u => u.clienteId === cliente.id);
-          const proyectosDelCliente = PROYECTOS.filter(p => p.clienteId === cliente.id);
+        {CLIENTS.map((client) => {
+          const clientUsers = USERS.filter(u => u.clientId === client.id);
+          const clientProjects = PROJECTS.filter(p => p.clientId === client.id);
 
           return (
-            <Link key={cliente.id} href={`/clientes/${cliente.id}`} className="block group">
+            <Link key={client.id} href={`/clients/${client.id}`} className="block group">
               <Card className="border-border/50 bg-card/60 backdrop-blur-sm hover:bg-card/80 hover:border-emerald-500/30 transition-all hover:shadow-lg hover:shadow-emerald-500/5 h-full">
                 <CardContent className="p-5 flex flex-col h-full">
                   <div className="flex items-start justify-between mb-4">
@@ -52,17 +52,17 @@ export default function ClientesPage() {
                   </div>
                   
                   <div className="flex-1 min-w-0">
-                    <h2 className="font-semibold text-base mb-1 line-clamp-2">{cliente.nombre}</h2>
+                    <h2 className="font-semibold text-base mb-1 line-clamp-2">{client.name}</h2>
                   </div>
                   
                   <div className="mt-4 pt-4 border-t border-border/50 flex items-center justify-between text-xs text-muted-foreground">
                     <span className="flex items-center gap-1.5">
-                      <Users className="w-3.5 h-3.5" /> 
-                      {usuariosDelCliente.length} {usuariosDelCliente.length === 1 ? 'Usuario' : 'Usuarios'}
+                      <UsersIcon className="w-3.5 h-3.5" /> 
+                      {clientUsers.length} {clientUsers.length === 1 ? 'Usuario' : 'Usuarios'}
                     </span>
                     <span className="flex items-center gap-1.5">
                       <Briefcase className="w-3.5 h-3.5" />
-                      {proyectosDelCliente.length} {proyectosDelCliente.length === 1 ? 'Proyecto' : 'Proyectos'}
+                      {clientProjects.length} {clientProjects.length === 1 ? 'Proyecto' : 'Proyectos'}
                     </span>
                   </div>
                 </CardContent>
@@ -70,7 +70,7 @@ export default function ClientesPage() {
             </Link>
           );
         })}
-        {CLIENTES.length === 0 && (
+        {CLIENTS.length === 0 && (
           <div className="col-span-full p-8 text-center border border-dashed border-border/50 rounded-xl bg-card/30">
             <p className="text-muted-foreground">No hay clientes registrados en el sistema.</p>
           </div>
@@ -89,8 +89,8 @@ export default function ClientesPage() {
             <div className="space-y-1.5">
               <Label>Razón Social / Nombre de la Empresa</Label>
               <Input 
-                value={nombre} 
-                onChange={(e) => setNombre(e.target.value)} 
+                value={name} 
+                onChange={(e) => setName(e.target.value)} 
                 placeholder="Ej: Minera Andina S.A..." 
               />
             </div>
@@ -100,7 +100,7 @@ export default function ClientesPage() {
             <Button 
               className="bg-emerald-600 hover:bg-emerald-500 text-white" 
               onClick={handleSave}
-              disabled={!nombre}
+              disabled={!name}
             >
               Crear Cliente
             </Button>

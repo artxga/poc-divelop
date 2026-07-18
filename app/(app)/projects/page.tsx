@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { PROYECTOS, CLIENTES, FORMULARIOS_ENVIADOS } from "@/app/_lib/mock-data";
+import { PROJECTS, CLIENTS, FORM_SUBMISSIONS } from "@/app/_lib/mock-data";
 import { useAuth } from "@/app/_lib/auth-context";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -13,21 +13,21 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
-const ESTADO = {
+const STATUS = {
   activo: { label: "Activo", class: "bg-emerald-500/15 text-emerald-400 border-emerald-500/20" },
   pausado: { label: "Pausado", class: "bg-amber-500/15 text-amber-400 border-amber-500/20" },
   completado: { label: "Completado", class: "bg-blue-500/15 text-blue-400 border-blue-500/20" },
 };
 
-export default function ProyectosPage() {
+export default function ProjectsPage() {
   const { user } = useAuth();
   
   const [modalOpen, setModalOpen] = useState(false);
   const [form, setForm] = useState({
-    nombre: "",
-    clienteId: "",
-    fechaInicio: new Date().toISOString().split("T")[0],
-    fechaFin: "",
+    name: "",
+    clientId: "",
+    startDate: new Date().toISOString().split("T")[0],
+    endDate: "",
   });
 
   if (!user) return null;
@@ -39,9 +39,9 @@ export default function ProyectosPage() {
   };
 
   // Filtrar proyectos según el rol
-  const proyectosFiltrados = PROYECTOS.filter((p) => {
-    if (user.rol === "admin" || user.rol === "consultor") return true;
-    return p.clienteId === user.clienteId;
+  const filteredProjects = PROJECTS.filter((p) => {
+    if (user.role === "admin" || user.role === "consultor") return true;
+    return p.clientId === user.clientId;
   });
 
   return (
@@ -53,7 +53,7 @@ export default function ProyectosPage() {
             Selecciona un proyecto para gestionar sus formularios y respuestas
           </p>
         </div>
-        {(user.rol === "admin" || user.rol === "consultor") && (
+        {(user.role === "admin" || user.role === "consultor") && (
           <Button onClick={() => setModalOpen(true)} className="bg-emerald-600 hover:bg-emerald-500 text-white gap-2">
             <FolderOpen className="w-4 h-4" /> Nuevo Proyecto
           </Button>
@@ -61,45 +61,45 @@ export default function ProyectosPage() {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        {proyectosFiltrados.map((p) => {
-          const estadoCfg = ESTADO[p.estado];
-          const cliente = CLIENTES.find((c) => c.id === p.clienteId);
+        {filteredProjects.map((p) => {
+          const statusCfg = STATUS[p.status];
+          const client = CLIENTS.find((c) => c.id === p.clientId);
           
-          const enviosDelProyecto = FORMULARIOS_ENVIADOS.filter(f => f.proyectoId === p.id);
-          const misEnvios = (user.rol === "cliente" || user.rol === "usuario_cliente") 
-            ? enviosDelProyecto.filter(f => f.usuarioEmail === user.email)
-            : enviosDelProyecto;
+          const projectSubmissions = FORM_SUBMISSIONS.filter(f => f.projectId === p.id);
+          const mySubmissions = (user.role === "cliente" || user.role === "usuario_cliente") 
+            ? projectSubmissions.filter(f => f.userEmail === user.email)
+            : projectSubmissions;
 
           // Si el cliente no tiene envíos asignados en este proyecto, y no es admin, no renderizamos
-          if ((user.rol === "cliente" || user.rol === "usuario_cliente") && misEnvios.length === 0) {
+          if ((user.role === "cliente" || user.role === "usuario_cliente") && mySubmissions.length === 0) {
             return null;
           }
 
           return (
-            <Link key={p.id} href={`/proyectos/${p.id}`} className="block group">
+            <Link key={p.id} href={`/projects/${p.id}`} className="block group">
               <Card className="border-border/50 bg-card/60 backdrop-blur-sm hover:bg-card/80 hover:border-emerald-500/30 transition-all hover:shadow-lg hover:shadow-emerald-500/5 h-full">
                 <CardContent className="p-5 flex flex-col h-full">
                   <div className="flex items-start justify-between mb-4">
                     <div className="w-11 h-11 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center shrink-0 group-hover:bg-emerald-500/20 transition-colors">
                       <FolderOpen className="w-5 h-5 text-emerald-400" />
                     </div>
-                    <span className={`shrink-0 text-xs px-2 py-0.5 rounded-full border ${estadoCfg.class}`}>
-                      {estadoCfg.label}
+                    <span className={`shrink-0 text-xs px-2 py-0.5 rounded-full border ${statusCfg.class}`}>
+                      {statusCfg.label}
                     </span>
                   </div>
                   <div className="flex-1 min-w-0">
-                    <h2 className="font-semibold text-base mb-1 line-clamp-2">{p.nombre}</h2>
+                    <h2 className="font-semibold text-base mb-1 line-clamp-2">{p.name}</h2>
                     <div className="flex items-center gap-1.5 text-xs text-muted-foreground mb-3">
                       <Briefcase className="w-3.5 h-3.5" />
-                      <span className="truncate">{cliente?.nombre}</span>
+                      <span className="truncate">{client?.name}</span>
                     </div>
                   </div>
                   <div className="mt-auto pt-4 border-t border-border/50 flex items-center justify-between text-xs text-muted-foreground">
                     <span className="flex items-center gap-1">
-                      <Calendar className="w-3.5 h-3.5" /> {p.fechaInicio}
+                      <Calendar className="w-3.5 h-3.5" /> {p.startDate}
                     </span>
                     <span className="font-medium text-emerald-400">
-                      {misEnvios.length} Formularios
+                      {mySubmissions.length} Formularios
                     </span>
                   </div>
                 </CardContent>
@@ -121,20 +121,20 @@ export default function ProyectosPage() {
             <div className="space-y-1.5">
               <Label>Nombre del Proyecto</Label>
               <Input 
-                value={form.nombre} 
-                onChange={(e) => setForm({ ...form, nombre: e.target.value })} 
+                value={form.name} 
+                onChange={(e) => setForm({ ...form, name: e.target.value })} 
                 placeholder="Ej: Reporte Sostenibilidad 2026..." 
               />
             </div>
             <div className="space-y-1.5">
               <Label>Cliente</Label>
-              <Select value={form.clienteId} onValueChange={(v) => setForm({ ...form, clienteId: v })}>
+              <Select value={form.clientId} onValueChange={(v) => setForm({ ...form, clientId: v })}>
                 <SelectTrigger>
                   <SelectValue placeholder="Selecciona un cliente" />
                 </SelectTrigger>
                 <SelectContent>
-                  {CLIENTES.map((c) => (
-                    <SelectItem key={c.id} value={c.id}>{c.nombre}</SelectItem>
+                  {CLIENTS.map((c) => (
+                    <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>
                   ))}
                 </SelectContent>
               </Select>
@@ -144,16 +144,16 @@ export default function ProyectosPage() {
                 <Label>Fecha Inicio</Label>
                 <Input 
                   type="date" 
-                  value={form.fechaInicio} 
-                  onChange={(e) => setForm({ ...form, fechaInicio: e.target.value })} 
+                  value={form.startDate} 
+                  onChange={(e) => setForm({ ...form, startDate: e.target.value })} 
                 />
               </div>
               <div className="space-y-1.5">
                 <Label>Fecha Fin</Label>
                 <Input 
                   type="date" 
-                  value={form.fechaFin} 
-                  onChange={(e) => setForm({ ...form, fechaFin: e.target.value })} 
+                  value={form.endDate} 
+                  onChange={(e) => setForm({ ...form, endDate: e.target.value })} 
                 />
               </div>
             </div>
@@ -163,7 +163,7 @@ export default function ProyectosPage() {
             <Button 
               className="bg-emerald-600 hover:bg-emerald-500 text-white" 
               onClick={handleSave}
-              disabled={!form.nombre || !form.clienteId || !form.fechaInicio || !form.fechaFin}
+              disabled={!form.name || !form.clientId || !form.startDate || !form.endDate}
             >
               Crear Proyecto
             </Button>

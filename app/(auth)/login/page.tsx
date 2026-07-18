@@ -10,10 +10,10 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Leaf, Eye, EyeOff, AlertCircle } from "lucide-react";
 
 const DEMO_CREDENTIALS = [
-  { email: "admin@divelop.com", password: "123", rol: "Administrador" },
-  { email: "consultor@divelop.com", password: "123", rol: "Consultor" },
-  { email: "cliente@mineraandina.com", password: "123", rol: "Cliente (Líder)" },
-  { email: "operador@mineraandina.com", password: "123", rol: "Usuario Cliente" },
+  { email: "admin@divelop.com", password: "123", role: "Administrador" },
+  { email: "consultor@divelop.com", password: "123", role: "Consultor" },
+  { email: "cliente@mineraandina.com", password: "123", role: "Cliente (Líder)" },
+  { email: "operador@mineraandina.com", password: "123", role: "Usuario Cliente" },
 ];
 
 export default function LoginPage() {
@@ -31,7 +31,7 @@ export default function LoginPage() {
     setLoading(true);
     // Small delay for UX
     await new Promise((r) => setTimeout(r, 600));
-    const ok = login(email, password);
+    const ok = await login(email, password);
     if (ok) {
       router.push("/dashboard");
     } else {
@@ -135,7 +135,7 @@ export default function LoginPage() {
                   className="flex items-center justify-between px-3 py-2 rounded-lg text-xs bg-secondary/50 hover:bg-secondary border border-border/50 hover:border-border transition-all text-left group"
                 >
                   <div>
-                    <span className="font-medium text-foreground">{cred.rol}</span>
+                    <span className="font-medium text-foreground">{cred.role}</span>
                     <p className="text-muted-foreground">{cred.email}</p>
                   </div>
                   <span className="text-muted-foreground group-hover:text-emerald-400 transition-colors text-xs">Usar →</span>
@@ -147,7 +147,7 @@ export default function LoginPage() {
       </Card>
 
       <p className="text-center text-xs text-muted-foreground mt-6">
-        © 2025 Divelop Sostenibilidad S.A.C. · Plataforma ESG Reporting
+        © 2026 Divelop Sostenibilidad S.A.C. · Plataforma ESG Reporting
       </p>
     </div>
   );

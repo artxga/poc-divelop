@@ -1,17 +1,17 @@
 "use client";
 
 import {
-  RESPUESTAS,
-  INDICADORES,
-  PROYECTOS,
-  FORMULARIOS_ENVIADOS,
-  FORMULARIO_TEMPLATES,
-  DATOS_MENSUALES,
-  DATOS_CATEGORIA,
-  DATOS_ESTANDAR,
-  ESTADO_FORM_CONFIG,
-  ESTANDAR_CONFIG,
-  CATEGORIA_CONFIG,
+  RESPONSES,
+  INDICATORS,
+  PROJECTS,
+  FORM_SUBMISSIONS,
+  FORM_TEMPLATES,
+  MONTHLY_DATA,
+  CATEGORY_DATA,
+  STANDARD_DATA,
+  FORM_STATUS_CONFIG,
+  STANDARD_CONFIG,
+  CATEGORY_CONFIG,
 } from "@/app/_lib/mock-data";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -53,22 +53,22 @@ import { Download, BarChart3, TrendingUp, PieChart as PieIcon, Activity, FileDow
 import { useState } from "react";
 
 function exportCSV() {
-  const rows = RESPUESTAS.map((r) => {
-    const ind = INDICADORES.find((i) => i.id === r.indicadorId);
-    const envio = FORMULARIOS_ENVIADOS.find((f) => f.id === r.envioId);
-    const template = FORMULARIO_TEMPLATES.find((t) => t.id === envio?.templateId);
-    const proy = PROYECTOS.find((p) => p.id === envio?.proyectoId);
+  const rows = RESPONSES.map((r) => {
+    const ind = INDICATORS.find((i) => i.id === r.indicatorId);
+    const submission = FORM_SUBMISSIONS.find((f) => f.id === r.submissionId);
+    const template = FORM_TEMPLATES.find((t) => t.id === submission?.templateId);
+    const proy = PROJECTS.find((p) => p.id === submission?.projectId);
 
     return [
-      proy?.nombre ?? "",
-      `${template?.nombre} - ${envio?.usuarioEmail}`,
-      ind?.codigo ?? "",
-      ind?.nombre ?? "",
-      ind?.estandar ?? "",
-      ind?.categoria ?? "",
-      envio?.estado ?? "",
-      String(r.valor ?? ""),
-      ind?.unidad ?? "",
+      proy?.name ?? "",
+      `${template?.name} - ${submission?.userEmail}`,
+      ind?.code ?? "",
+      ind?.name ?? "",
+      ind?.standard ?? "",
+      ind?.category ?? "",
+      submission?.status ?? "",
+      String(r.value ?? ""),
+      ind?.unit ?? "",
     ].join(",");
   });
   const header = "Proyecto,Formulario,Código,Indicador,Estándar,Categoría,Estado Formulario,Valor,Unidad";
@@ -90,16 +90,16 @@ const RADAR_DATA = [
   { subject: "Agua", A: 90, B: 40 },
 ];
 
-export default function ReportesPage() {
-  const [filtroProyecto, setFiltroProyecto] = useState("todos");
-  const [filtroEstandar, setFiltroEstandar] = useState("todos");
+export default function ReportsPage() {
+  const [projectFilter, setProjectFilter] = useState("todos");
+  const [standardFilter, setStandardFilter] = useState("todos");
 
-  const respuestasFiltradas = RESPUESTAS.filter((r) => {
-    const ind = INDICADORES.find((i) => i.id === r.indicadorId);
-    const envio = FORMULARIOS_ENVIADOS.find((f) => f.id === r.envioId);
+  const filteredResponses = RESPONSES.filter((r) => {
+    const ind = INDICATORS.find((i) => i.id === r.indicatorId);
+    const submission = FORM_SUBMISSIONS.find((f) => f.id === r.submissionId);
 
-    const matchProy = filtroProyecto === "todos" || envio?.proyectoId === filtroProyecto;
-    const matchEst = filtroEstandar === "todos" || ind?.estandar === filtroEstandar;
+    const matchProy = projectFilter === "todos" || submission?.projectId === projectFilter;
+    const matchEst = standardFilter === "todos" || ind?.standard === standardFilter;
     return matchProy && matchEst;
   });
 
@@ -113,14 +113,14 @@ export default function ReportesPage() {
           </p>
         </div>
         <div className="flex gap-2">
-          <Select value={filtroProyecto} onValueChange={setFiltroProyecto}>
+          <Select value={projectFilter} onValueChange={setProjectFilter}>
             <SelectTrigger className="w-56 border-emerald-500/30">
               <SelectValue placeholder="Seleccionar Proyecto" />
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="todos">Todos los Proyectos</SelectItem>
-              {PROYECTOS.map((p) => (
-                <SelectItem key={p.id} value={p.id}>{p.nombre}</SelectItem>
+              {PROJECTS.map((p) => (
+                <SelectItem key={p.id} value={p.id}>{p.name}</SelectItem>
               ))}
             </SelectContent>
           </Select>
@@ -131,7 +131,7 @@ export default function ReportesPage() {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-        {/* Gráficos simulados que en la realidad reaccionarían a respuestasFiltradas */}
+        {/* Gráficos simulados que en la realidad reaccionarían a filteredResponses */}
         <Card className="border-border/50 bg-card/60 backdrop-blur-sm">
           <CardHeader className="pb-2">
             <div className="flex items-center gap-2">
@@ -141,7 +141,7 @@ export default function ReportesPage() {
           </CardHeader>
           <CardContent>
             <ResponsiveContainer width="100%" height={220}>
-              <BarChart data={DATOS_CATEGORIA} margin={{ top: 0, right: 0, left: -20, bottom: 0 }}>
+              <BarChart data={CATEGORY_DATA} margin={{ top: 0, right: 0, left: -20, bottom: 0 }}>
                 <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" />
                 <XAxis dataKey="categoria" tick={{ fill: "#94a3b8", fontSize: 12 }} axisLine={false} tickLine={false} />
                 <YAxis tick={{ fill: "#94a3b8", fontSize: 12 }} axisLine={false} tickLine={false} />
@@ -165,7 +165,7 @@ export default function ReportesPage() {
           </CardHeader>
           <CardContent>
             <ResponsiveContainer width="100%" height={220}>
-              <LineChart data={DATOS_MENSUALES} margin={{ top: 0, right: 0, left: -20, bottom: 0 }}>
+              <LineChart data={MONTHLY_DATA} margin={{ top: 0, right: 0, left: -20, bottom: 0 }}>
                 <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" />
                 <XAxis dataKey="mes" tick={{ fill: "#94a3b8", fontSize: 12 }} axisLine={false} tickLine={false} />
                 <YAxis tick={{ fill: "#94a3b8", fontSize: 12 }} axisLine={false} tickLine={false} />
@@ -190,7 +190,7 @@ export default function ReportesPage() {
             <ResponsiveContainer width="100%" height={200}>
               <PieChart>
                 <Pie
-                  data={DATOS_ESTANDAR}
+                  data={STANDARD_DATA}
                   cx="50%"
                   cy="50%"
                   outerRadius={80}
@@ -200,7 +200,7 @@ export default function ReportesPage() {
                   label={({ estandar, percent }: any) => `${estandar} ${(percent * 100).toFixed(0)}%`}
                   labelLine={false}
                 >
-                  {DATOS_ESTANDAR.map((entry, i) => (
+                  {STANDARD_DATA.map((entry, i) => (
                     <Cell key={i} fill={entry.fill} />
                   ))}
                 </Pie>
@@ -240,7 +240,7 @@ export default function ReportesPage() {
               <CardDescription>Visualizando respuestas filtradas</CardDescription>
             </div>
             <div className="flex gap-2">
-              <Select value={filtroEstandar} onValueChange={setFiltroEstandar}>
+              <Select value={standardFilter} onValueChange={setStandardFilter}>
                 <SelectTrigger className="w-36 h-8 text-xs">
                   <SelectValue placeholder="Estándar" />
                 </SelectTrigger>
@@ -267,29 +267,29 @@ export default function ReportesPage() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {respuestasFiltradas.map((r) => {
-                const ind = INDICADORES.find((i) => i.id === r.indicadorId);
-                const envio = FORMULARIOS_ENVIADOS.find((f) => f.id === r.envioId);
-                const template = FORMULARIO_TEMPLATES.find((t) => t.id === envio?.templateId);
-                const estCfg = ind ? ESTANDAR_CONFIG[ind.estandar as keyof typeof ESTANDAR_CONFIG] : null;
-                const catCfg = ind ? CATEGORIA_CONFIG[ind.categoria] : null;
-                const estadoCfg = envio ? ESTADO_FORM_CONFIG[envio.estado] : null;
+              {filteredResponses.map((r) => {
+                const ind = INDICATORS.find((i) => i.id === r.indicatorId);
+                const submission = FORM_SUBMISSIONS.find((f) => f.id === r.submissionId);
+                const template = FORM_TEMPLATES.find((t) => t.id === submission?.templateId);
+                const estCfg = ind ? STANDARD_CONFIG[ind.standard as keyof typeof STANDARD_CONFIG] : null;
+                const catCfg = ind ? CATEGORY_CONFIG[ind.category] : null;
+                const statusCfg = submission ? FORM_STATUS_CONFIG[submission.status] : null;
 
                 return (
                   <TableRow key={r.id} className="border-border/30 hover:bg-secondary/20">
                     <TableCell className="pl-6">
                       <div>
-                        <p className="text-xs font-mono text-muted-foreground">{ind?.codigo}</p>
-                        <p className="text-sm font-medium line-clamp-1">{ind?.nombre}</p>
+                        <p className="text-xs font-mono text-muted-foreground">{ind?.code}</p>
+                        <p className="text-sm font-medium line-clamp-1">{ind?.name}</p>
                       </div>
                     </TableCell>
                     <TableCell className="text-xs text-muted-foreground max-w-[160px] truncate">
-                      {template?.nombre} - {envio?.usuarioEmail}
+                      {template?.name} - {submission?.userEmail}
                     </TableCell>
                     <TableCell>
                       {estCfg && (
                         <span className={`text-xs px-2 py-0.5 rounded-full border ${estCfg.border} ${estCfg.bg} ${estCfg.color} font-medium`}>
-                          {ind?.estandar}
+                          {ind?.standard}
                         </span>
                       )}
                     </TableCell>
@@ -297,23 +297,23 @@ export default function ReportesPage() {
                       {catCfg && (
                         <div className={`flex items-center gap-1.5 text-xs ${catCfg.color}`}>
                           <div className={`w-1.5 h-1.5 rounded-full ${catCfg.dot}`} />
-                          {ind?.categoria}
+                          {ind?.category}
                         </div>
                       )}
                     </TableCell>
                     <TableCell className="text-sm font-medium">
-                      {r.valor === null || r.valor === undefined ? (
+                      {r.value === null || r.value === undefined ? (
                         <span className="text-muted-foreground">—</span>
-                      ) : typeof r.valor === "boolean" ? (
-                        r.valor ? "Sí" : "No"
+                      ) : typeof r.value === "boolean" ? (
+                        r.value ? "Sí" : "No"
                       ) : (
-                        <span>{String(r.valor)} {ind?.unidad && <span className="text-xs text-muted-foreground">{ind.unidad}</span>}</span>
+                        <span>{String(r.value)} {ind?.unit && <span className="text-xs text-muted-foreground">{ind.unit}</span>}</span>
                       )}
                     </TableCell>
                     <TableCell className="pr-6">
-                      {estadoCfg && (
-                        <span className={`text-xs px-2 py-0.5 rounded-full border ${estadoCfg.color}`}>
-                          {estadoCfg.label}
+                      {statusCfg && (
+                        <span className={`text-xs px-2 py-0.5 rounded-full border ${statusCfg.color}`}>
+                          {statusCfg.label}
                         </span>
                       )}
                     </TableCell>

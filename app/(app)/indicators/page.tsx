@@ -2,13 +2,13 @@
 
 import { useState } from "react";
 import {
-  INDICADORES,
-  CATEGORIA_CONFIG,
-  ESTANDAR_CONFIG,
-  type Indicador,
-  type IndicadorEstandar,
-  type IndicadorCategoria,
-  type IndicadorTipoDato,
+  INDICATORS,
+  CATEGORY_CONFIG,
+  STANDARD_CONFIG,
+  type Indicator,
+  type IndicatorStandard,
+  type IndicatorCategory,
+  type IndicatorDataType,
 } from "@/app/_lib/mock-data";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -31,7 +31,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
-import { IndicadorModal } from "@/app/_components/indicador-modal";
+import { IndicatorModal } from "@/app/_components/indicator-modal";
 import {
   Table,
   TableBody,
@@ -42,10 +42,10 @@ import {
 } from "@/components/ui/table";
 import { Plus, Search, Pencil, Trash2, BookOpen, Filter } from "lucide-react";
 
-const ESTANDARES: IndicadorEstandar[] = ["GRI", "SASB", "ODS", "TCFD", "Manual"];
-const CATEGORIAS: IndicadorCategoria[] = ["Ambiental", "Social", "Gobernanza"];
-const TIPOS: IndicadorTipoDato[] = ["numero", "texto", "porcentaje", "booleano", "seleccion"];
-const TIPO_LABELS: Record<IndicadorTipoDato, string> = {
+const STANDARDS: IndicatorStandard[] = ["GRI", "SASB", "ODS", "TCFD", "Manual"];
+const CATEGORIES: IndicatorCategory[] = ["Ambiental", "Social", "Gobernanza"];
+const DATA_TYPES: IndicatorDataType[] = ["numero", "texto", "porcentaje", "booleano", "seleccion"];
+const DATA_TYPE_LABELS: Record<IndicatorDataType, string> = {
   numero: "Numérico",
   texto: "Texto",
   porcentaje: "Porcentaje",
@@ -53,35 +53,35 @@ const TIPO_LABELS: Record<IndicadorTipoDato, string> = {
   seleccion: "Selección",
 };
 
-const EMPTY_FORM: Omit<Indicador, "id"> = {
-  codigo: "",
-  nombre: "",
-  descripcion: "",
-  estandar: "GRI",
-  categoria: "Ambiental",
-  tipoDato: "numero",
-  unidad: "",
+const EMPTY_FORM: Omit<Indicator, "id"> = {
+  code: "",
+  name: "",
+  description: "",
+  standard: "GRI",
+  category: "Ambiental",
+  dataType: "numero",
+  unit: "",
 };
 
 let nextId = 100;
 
-export default function IndicadoresPage() {
-  const [indicadores, setIndicadores] = useState<Indicador[]>(INDICADORES);
-  const [busqueda, setBusqueda] = useState("");
-  const [filtroEstandar, setFiltroEstandar] = useState<string>("todos");
-  const [filtroCategoria, setFiltroCategoria] = useState<string>("todos");
+export default function IndicatorsPage() {
+  const [indicators, setIndicators] = useState<Indicator[]>(INDICATORS);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [standardFilter, setStandardFilter] = useState<string>("todos");
+  const [categoryFilter, setCategoryFilter] = useState<string>("todos");
   const [modalOpen, setModalOpen] = useState(false);
   const [deleteId, setDeleteId] = useState<string | null>(null);
-  const [editTarget, setEditTarget] = useState<Indicador | null>(null);
-  const [form, setForm] = useState<Omit<Indicador, "id">>(EMPTY_FORM);
+  const [editTarget, setEditTarget] = useState<Indicator | null>(null);
+  const [form, setForm] = useState<Omit<Indicator, "id">>(EMPTY_FORM);
 
-  const filtrados = indicadores.filter((ind) => {
-    const matchBusqueda =
-      ind.nombre.toLowerCase().includes(busqueda.toLowerCase()) ||
-      ind.codigo.toLowerCase().includes(busqueda.toLowerCase());
-    const matchEstandar = filtroEstandar === "todos" || ind.estandar === filtroEstandar;
-    const matchCategoria = filtroCategoria === "todos" || ind.categoria === filtroCategoria;
-    return matchBusqueda && matchEstandar && matchCategoria;
+  const filteredIndicators = indicators.filter((ind) => {
+    const matchSearch =
+      ind.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      ind.code.toLowerCase().includes(searchQuery.toLowerCase());
+    const matchStandard = standardFilter === "todos" || ind.standard === standardFilter;
+    const matchCategory = categoryFilter === "todos" || ind.category === categoryFilter;
+    return matchSearch && matchStandard && matchCategory;
   });
 
   function openCreate() {
@@ -90,19 +90,19 @@ export default function IndicadoresPage() {
     setModalOpen(true);
   }
 
-  function openEdit(ind: Indicador) {
+  function openEdit(ind: Indicator) {
     setEditTarget(ind);
-    setForm({ codigo: ind.codigo, nombre: ind.nombre, descripcion: ind.descripcion, estandar: ind.estandar, categoria: ind.categoria, tipoDato: ind.tipoDato, unidad: ind.unidad ?? "" });
+    setForm({ code: ind.code, name: ind.name, description: ind.description, standard: ind.standard, category: ind.category, dataType: ind.dataType, unit: ind.unit ?? "" });
     setModalOpen(true);
   }
 
-  function saveIndicador() {
+  function saveIndicator() {
     if (editTarget) {
-      setIndicadores((prev) =>
+      setIndicators((prev) =>
         prev.map((i) => (i.id === editTarget.id ? { ...i, ...form } : i))
       );
     } else {
-      setIndicadores((prev) => [
+      setIndicators((prev) => [
         { id: `custom-${nextId++}`, ...form },
         ...prev,
       ]);
@@ -110,12 +110,12 @@ export default function IndicadoresPage() {
     setModalOpen(false);
   }
 
-  function deleteIndicador(id: string) {
-    setIndicadores((prev) => prev.filter((i) => i.id !== id));
+  function deleteIndicator(id: string) {
+    setIndicators((prev) => prev.filter((i) => i.id !== id));
     setDeleteId(null);
   }
 
-  const countByEstandar = (est: string) => indicadores.filter((i) => i.estandar === est).length;
+  const countByStandard = (est: string) => indicators.filter((i) => i.standard === est).length;
 
   return (
     <div className="space-y-6">
@@ -139,16 +139,16 @@ export default function IndicadoresPage() {
 
       {/* Stats mini */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-        {ESTANDARES.filter((e) => e !== "Manual").map((est) => {
-          const cfg = ESTANDAR_CONFIG[est];
+        {STANDARDS.filter((e) => e !== "Manual").map((est) => {
+          const cfg = STANDARD_CONFIG[est];
           return (
             <div
               key={est}
               className={`flex items-center gap-3 p-3 rounded-xl border ${cfg.border} ${cfg.bg} cursor-pointer transition-all hover:scale-[1.02]`}
-              onClick={() => setFiltroEstandar(filtroEstandar === est ? "todos" : est)}
+              onClick={() => setStandardFilter(standardFilter === est ? "todos" : est)}
             >
               <div className="flex-1">
-                <p className={`text-lg font-bold ${cfg.color}`}>{countByEstandar(est)}</p>
+                <p className={`text-lg font-bold ${cfg.color}`}>{countByStandard(est)}</p>
                 <p className="text-xs text-muted-foreground">{est} indicators</p>
               </div>
               <BookOpen className={`w-5 h-5 ${cfg.color} opacity-60`} />
@@ -166,30 +166,30 @@ export default function IndicadoresPage() {
               <Input
                 id="busqueda-indicadores"
                 placeholder="Buscar por nombre o código..."
-                value={busqueda}
-                onChange={(e) => setBusqueda(e.target.value)}
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
                 className="pl-9"
               />
             </div>
-            <Select value={filtroEstandar} onValueChange={setFiltroEstandar}>
+            <Select value={standardFilter} onValueChange={setStandardFilter}>
               <SelectTrigger id="filtro-estandar" className="w-40">
                 <Filter className="w-3.5 h-3.5 mr-1.5 text-muted-foreground" />
                 <SelectValue placeholder="Estándar" />
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="todos">Todos los estándares</SelectItem>
-                {ESTANDARES.map((e) => (
+                {STANDARDS.map((e) => (
                   <SelectItem key={e} value={e}>{e}</SelectItem>
                 ))}
               </SelectContent>
             </Select>
-            <Select value={filtroCategoria} onValueChange={setFiltroCategoria}>
+            <Select value={categoryFilter} onValueChange={setCategoryFilter}>
               <SelectTrigger id="filtro-categoria" className="w-40">
                 <SelectValue placeholder="Categoría" />
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="todos">Todas las categorías</SelectItem>
-                {CATEGORIAS.map((c) => (
+                {CATEGORIES.map((c) => (
                   <SelectItem key={c} value={c}>{c}</SelectItem>
                 ))}
               </SelectContent>
@@ -203,7 +203,7 @@ export default function IndicadoresPage() {
         <CardHeader className="pb-2">
           <div className="flex items-center justify-between">
             <CardTitle className="text-base">
-              Indicadores ({filtrados.length})
+              Indicadores ({filteredIndicators.length})
             </CardTitle>
           </div>
         </CardHeader>
@@ -220,35 +220,35 @@ export default function IndicadoresPage() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {filtrados.map((ind) => {
-                const estCfg = ESTANDAR_CONFIG[ind.estandar];
-                const catCfg = CATEGORIA_CONFIG[ind.categoria];
+              {filteredIndicators.map((ind) => {
+                const estCfg = STANDARD_CONFIG[ind.standard];
+                const catCfg = CATEGORY_CONFIG[ind.category];
                 return (
                   <TableRow key={ind.id} className="border-border/30 hover:bg-secondary/20">
                     <TableCell className="pl-6 font-mono text-xs text-muted-foreground font-medium">
-                      {ind.codigo}
+                      {ind.code}
                     </TableCell>
                     <TableCell>
                       <div>
-                        <p className="text-sm font-medium leading-snug">{ind.nombre}</p>
-                        <p className="text-xs text-muted-foreground line-clamp-1 mt-0.5">{ind.descripcion}</p>
+                        <p className="text-sm font-medium leading-snug">{ind.name}</p>
+                        <p className="text-xs text-muted-foreground line-clamp-1 mt-0.5">{ind.description}</p>
                       </div>
                     </TableCell>
                     <TableCell>
                       <span className={`text-xs px-2 py-0.5 rounded-full border ${estCfg.border} ${estCfg.bg} ${estCfg.color} font-medium`}>
-                        {ind.estandar}
+                        {ind.standard}
                       </span>
                     </TableCell>
                     <TableCell>
                       <div className={`flex items-center gap-1.5 text-xs`}>
                         <div className={`w-2 h-2 rounded-full ${catCfg.dot}`} />
-                        <span className={catCfg.color}>{ind.categoria}</span>
+                        <span className={catCfg.color}>{ind.category}</span>
                       </div>
                     </TableCell>
                     <TableCell>
                       <div className="text-xs text-muted-foreground">
-                        {TIPO_LABELS[ind.tipoDato]}
-                        {ind.unidad && <span className="ml-1 text-foreground/50">({ind.unidad})</span>}
+                        {DATA_TYPE_LABELS[ind.dataType]}
+                        {ind.unit && <span className="ml-1 text-foreground/50">({ind.unit})</span>}
                       </div>
                     </TableCell>
                     <TableCell className="pr-6 text-right">
@@ -282,11 +282,11 @@ export default function IndicadoresPage() {
       </Card>
 
       {/* Create/Edit Modal */}
-      <IndicadorModal 
+      <IndicatorModal 
         open={modalOpen} 
         onOpenChange={setModalOpen} 
         initialData={editTarget}
-        onSave={saveIndicador}
+        onSave={saveIndicator}
       />
 
       {/* Delete confirm */}
@@ -302,7 +302,7 @@ export default function IndicadoresPage() {
             <Button variant="outline" onClick={() => setDeleteId(null)}>Cancelar</Button>
             <Button
               variant="destructive"
-              onClick={() => deleteId && deleteIndicador(deleteId)}
+              onClick={() => deleteId && deleteIndicator(deleteId)}
             >
               Eliminar
             </Button>

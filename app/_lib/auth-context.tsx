@@ -1,18 +1,18 @@
 "use client";
 
-import React, { createContext, useContext, useState, useEffect } from "react";
-import { USUARIOS, User } from "@/app/_lib/mock-data";
+import { createContext, useContext, useState, useEffect } from "react";
+import { USERS, type User } from "./mock-data";
 
-interface AuthContextValue {
+interface AuthContextType {
   user: User | null;
-  login: (email: string, password: string) => boolean;
+  login: (email: string, password: string) => Promise<boolean>;
   logout: () => void;
   isLoading: boolean;
 }
 
-const AuthContext = createContext<AuthContextValue>({
+const AuthContext = createContext<AuthContextType>({
   user: null,
-  login: () => false,
+  login: async () => false,
   logout: () => {},
   isLoading: true,
 });
@@ -22,39 +22,31 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    const stored = localStorage.getItem("divelop_user");
-    if (stored) {
-      try {
-        const parsed = JSON.parse(stored);
-        const freshUser = USUARIOS.find((u) => u.email === parsed.email) || null;
-        if (freshUser) {
-          setUser(freshUser);
-        } else {
-          localStorage.removeItem("divelop_user");
-        }
-      } catch {
-        localStorage.removeItem("divelop_user");
+    // Check localStorage on mount
+    const savedUserId = localStorage.getItem("auth_user_id");
+    if (savedUserId) {
+      const foundUser = USERS.find((u) => u.id === savedUserId);
+      if (foundUser) {
+        setUser(foundUser);
       }
     }
     setIsLoading(false);
   }, []);
 
-  function login(email: string, password: string): boolean {
-    const found = USUARIOS.find(
-      (u) => u.email === email && u.password === password
-    );
-    if (found) {
-      setUser(found);
-      localStorage.setItem("divelop_user", JSON.stringify(found));
+  const login = async (email: string, pass: string) => {
+    const foundUser = USERS.find((u) => u.email === email && u.password === pass);
+    if (foundUser) {
+      setUser(foundUser);
+      localStorage.setItem("auth_user_id", foundUser.id);
       return true;
     }
     return false;
-  }
+  };
 
-  function logout() {
+  const logout = () => {
     setUser(null);
-    localStorage.removeItem("divelop_user");
-  }
+    localStorage.removeItem("auth_user_id");
+  };
 
   return (
     <AuthContext.Provider value={{ user, login, logout, isLoading }}>
@@ -63,6 +55,4 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   );
 }
 
-export function useAuth() {
-  return useContext(AuthContext);
-}
+export const useAuth = () => useContext(AuthContext);

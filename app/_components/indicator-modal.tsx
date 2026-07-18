@@ -7,13 +7,13 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import type { Indicador, IndicadorEstandar, IndicadorCategoria, IndicadorTipoDato } from "@/app/_lib/mock-data";
+import type { Indicator, IndicatorStandard, IndicatorCategory, IndicatorDataType } from "@/app/_lib/mock-data";
 
-const ESTANDARES: IndicadorEstandar[] = ["GRI", "SASB", "ODS", "TCFD", "Manual"];
-const CATEGORIAS: IndicadorCategoria[] = ["Ambiental", "Social", "Gobernanza"];
-const TIPOS: IndicadorTipoDato[] = ["numero", "texto", "porcentaje", "booleano", "seleccion"];
+const STANDARDS: IndicatorStandard[] = ["GRI", "SASB", "ODS", "TCFD", "Manual"];
+const CATEGORIES: IndicatorCategory[] = ["Ambiental", "Social", "Gobernanza"];
+const TYPES: IndicatorDataType[] = ["numero", "texto", "porcentaje", "booleano", "seleccion"];
 
-const TIPO_LABELS: Record<IndicadorTipoDato, string> = {
+const TYPE_LABELS: Record<IndicatorDataType, string> = {
   numero: "Número",
   texto: "Texto",
   porcentaje: "Porcentaje",
@@ -21,45 +21,45 @@ const TIPO_LABELS: Record<IndicadorTipoDato, string> = {
   seleccion: "Selección Múltiple",
 };
 
-interface IndicadorModalProps {
+interface IndicatorModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  initialData?: Indicador | null;
-  onSave: (indicador: Omit<Indicador, "id">) => void;
+  initialData?: Indicator | null;
+  onSave: (indicator: Omit<Indicator, "id">) => void;
 }
 
-export function IndicadorModal({ open, onOpenChange, initialData, onSave }: IndicadorModalProps) {
-  const [form, setForm] = useState<Omit<Indicador, "id">>({
-    codigo: "",
-    nombre: "",
-    descripcion: "",
-    estandar: "Manual",
-    categoria: "Ambiental",
-    tipoDato: "numero",
-    unidad: "",
+export function IndicatorModal({ open, onOpenChange, initialData, onSave }: IndicatorModalProps) {
+  const [form, setForm] = useState<Omit<Indicator, "id">>({
+    code: "",
+    name: "",
+    description: "",
+    standard: "Manual",
+    category: "Ambiental",
+    dataType: "numero",
+    unit: "",
   });
 
   useEffect(() => {
     if (open) {
       if (initialData) {
         setForm({
-          codigo: initialData.codigo,
-          nombre: initialData.nombre,
-          descripcion: initialData.descripcion,
-          estandar: initialData.estandar,
-          categoria: initialData.categoria,
-          tipoDato: initialData.tipoDato,
-          unidad: initialData.unidad ?? "",
+          code: initialData.code,
+          name: initialData.name,
+          description: initialData.description,
+          standard: initialData.standard,
+          category: initialData.category,
+          dataType: initialData.dataType,
+          unit: initialData.unit ?? "",
         });
       } else {
         setForm({
-          codigo: "",
-          nombre: "",
-          descripcion: "",
-          estandar: "Manual",
-          categoria: "Ambiental",
-          tipoDato: "numero",
-          unidad: "",
+          code: "",
+          name: "",
+          description: "",
+          standard: "Manual",
+          category: "Ambiental",
+          dataType: "numero",
+          unit: "",
         });
       }
     }
@@ -83,48 +83,48 @@ export function IndicadorModal({ open, onOpenChange, initialData, onSave }: Indi
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-1.5">
               <Label htmlFor="cod">Código</Label>
-              <Input id="cod" value={form.codigo} onChange={(e) => setForm({ ...form, codigo: e.target.value })} placeholder="GRI 305-1" />
+              <Input id="cod" value={form.code} onChange={(e) => setForm({ ...form, code: e.target.value })} placeholder="GRI 305-1" />
             </div>
             <div className="space-y-1.5">
               <Label htmlFor="estandar-sel">Estándar</Label>
-              <Select value={form.estandar} onValueChange={(v) => setForm({ ...form, estandar: v as IndicadorEstandar })}>
+              <Select value={form.standard} onValueChange={(v) => setForm({ ...form, standard: v as IndicatorStandard })}>
                 <SelectTrigger id="estandar-sel"><SelectValue /></SelectTrigger>
                 <SelectContent>
-                  {ESTANDARES.map((e) => <SelectItem key={e} value={e}>{e}</SelectItem>)}
+                  {STANDARDS.map((e) => <SelectItem key={e} value={e}>{e}</SelectItem>)}
                 </SelectContent>
               </Select>
             </div>
           </div>
           <div className="space-y-1.5">
-            <Label htmlFor="nombre-ind">Nombre del indicador</Label>
-            <Input id="nombre-ind" value={form.nombre} onChange={(e) => setForm({ ...form, nombre: e.target.value })} placeholder="Ej: Consumo de energía..." />
+              <Label htmlFor="nombre-ind">Nombre del indicador</Label>
+              <Input id="nombre-ind" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} placeholder="Ej: Consumo de energía..." />
           </div>
           <div className="space-y-1.5">
-            <Label htmlFor="desc-ind">Descripción</Label>
-            <Textarea id="desc-ind" value={form.descripcion} onChange={(e) => setForm({ ...form, descripcion: e.target.value })} rows={3} placeholder="Descripción detallada del indicador..." />
+              <Label htmlFor="desc-ind">Descripción</Label>
+              <Textarea id="desc-ind" value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} rows={3} placeholder="Descripción detallada del indicador..." />
           </div>
           <div className="grid grid-cols-3 gap-3">
             <div className="space-y-1.5">
               <Label htmlFor="cat-sel">Categoría</Label>
-              <Select value={form.categoria} onValueChange={(v) => setForm({ ...form, categoria: v as IndicadorCategoria })}>
+              <Select value={form.category} onValueChange={(v) => setForm({ ...form, category: v as IndicatorCategory })}>
                 <SelectTrigger id="cat-sel"><SelectValue /></SelectTrigger>
                 <SelectContent>
-                  {CATEGORIAS.map((c) => <SelectItem key={c} value={c}>{c}</SelectItem>)}
+                  {CATEGORIES.map((c) => <SelectItem key={c} value={c}>{c}</SelectItem>)}
                 </SelectContent>
               </Select>
             </div>
             <div className="space-y-1.5">
               <Label htmlFor="tipo-sel">Tipo de dato</Label>
-              <Select value={form.tipoDato} onValueChange={(v) => setForm({ ...form, tipoDato: v as IndicadorTipoDato })}>
+              <Select value={form.dataType} onValueChange={(v) => setForm({ ...form, dataType: v as IndicatorDataType })}>
                 <SelectTrigger id="tipo-sel"><SelectValue /></SelectTrigger>
                 <SelectContent>
-                  {TIPOS.map((t) => <SelectItem key={t} value={t}>{TIPO_LABELS[t]}</SelectItem>)}
+                  {TYPES.map((t) => <SelectItem key={t} value={t}>{TYPE_LABELS[t]}</SelectItem>)}
                 </SelectContent>
               </Select>
             </div>
             <div className="space-y-1.5">
               <Label htmlFor="unidad-ind">Unidad</Label>
-              <Input id="unidad-ind" value={form.unidad ?? ""} onChange={(e) => setForm({ ...form, unidad: e.target.value })} placeholder="tCO₂e, m³..." />
+              <Input id="unidad-ind" value={form.unit ?? ""} onChange={(e) => setForm({ ...form, unit: e.target.value })} placeholder="tCO₂e, m³..." />
             </div>
           </div>
         </div>
@@ -133,7 +133,7 @@ export function IndicadorModal({ open, onOpenChange, initialData, onSave }: Indi
           <Button
             className="bg-emerald-600 hover:bg-emerald-500 text-white"
             onClick={handleSave}
-            disabled={!form.nombre || !form.codigo}
+            disabled={!form.name || !form.code}
           >
             {initialData ? "Guardar cambios" : "Crear indicador"}
           </Button>

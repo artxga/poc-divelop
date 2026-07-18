@@ -25,12 +25,12 @@ import {
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import {
-  PROYECTOS,
-  INDICADORES,
-  USUARIOS,
-  ESTANDAR_CONFIG,
-  CATEGORIA_CONFIG,
-  type Indicador
+  PROJECTS,
+  INDICATORS,
+  USERS,
+  STANDARD_CONFIG,
+  CATEGORY_CONFIG,
+  type Indicator
 } from "@/app/_lib/mock-data";
 import { useAuth } from "@/app/_lib/auth-context";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -39,18 +39,18 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { ChevronLeft, GripVertical, Plus, Save, Send, Trash2, LayoutList, GripHorizontal } from "lucide-react";
-import { IndicadorModal } from "@/app/_components/indicador-modal";
+import { IndicatorModal } from "@/app/_components/indicator-modal";
 import { cn } from "@/lib/utils";
 
 // --- Subcomponents for DnD ---
 
-function DraggableIndicador({ indicador }: { indicador: Indicador }) {
+function DraggableIndicator({ indicator }: { indicator: Indicator }) {
   const { attributes, listeners, setNodeRef, isDragging } = useDraggable({
-    id: `bank-${indicador.id}`,
-    data: { type: "Indicator", indicador },
+    id: `bank-${indicator.id}`,
+    data: { type: "Indicator", indicator },
   });
 
-  const catCfg = CATEGORIA_CONFIG[indicador.categoria];
+  const catCfg = CATEGORY_CONFIG[indicator.category];
 
   return (
     <div
@@ -64,18 +64,18 @@ function DraggableIndicador({ indicador }: { indicador: Indicador }) {
     >
       <div className="flex items-center gap-2 mb-1">
         <GripHorizontal className="w-4 h-4 text-muted-foreground shrink-0" />
-        <span className="font-mono text-[10px] text-muted-foreground">{indicador.codigo}</span>
+        <span className="font-mono text-[10px] text-muted-foreground">{indicator.code}</span>
       </div>
-      <p className="text-xs font-medium leading-snug line-clamp-2">{indicador.nombre}</p>
+      <p className="text-xs font-medium leading-snug line-clamp-2">{indicator.name}</p>
       <div className={`mt-2 flex items-center gap-1.5 text-[10px] ${catCfg.color}`}>
         <div className={`w-1.5 h-1.5 rounded-full ${catCfg.dot}`} />
-        {indicador.categoria}
+        {indicator.category}
       </div>
     </div>
   );
 }
 
-function SortableIndicador({ id, indicador, onRemove }: { id: string; indicador: Indicador; onRemove: () => void }) {
+function SortableIndicator({ id, indicator, onRemove }: { id: string; indicator: Indicator; onRemove: () => void }) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id });
 
   const style = {
@@ -83,7 +83,7 @@ function SortableIndicador({ id, indicador, onRemove }: { id: string; indicador:
     transition,
   };
 
-  const catCfg = CATEGORIA_CONFIG[indicador.categoria];
+  const catCfg = CATEGORY_CONFIG[indicator.category];
 
   return (
     <div
@@ -104,14 +104,14 @@ function SortableIndicador({ id, indicador, onRemove }: { id: string; indicador:
       
       <div className="flex-1 min-w-0">
         <div className="flex items-center gap-2 mb-1">
-          <span className="font-mono text-xs text-muted-foreground">{indicador.codigo}</span>
+          <span className="font-mono text-xs text-muted-foreground">{indicator.code}</span>
           <div className={`flex items-center gap-1.5 text-xs ${catCfg.color}`}>
             <div className={`w-1.5 h-1.5 rounded-full ${catCfg.dot}`} />
-            {indicador.categoria}
+            {indicator.category}
           </div>
         </div>
-        <p className="font-medium text-sm">{indicador.nombre}</p>
-        <p className="text-xs text-muted-foreground mt-1">{indicador.descripcion}</p>
+        <p className="font-medium text-sm">{indicator.name}</p>
+        <p className="text-xs text-muted-foreground mt-1">{indicator.description}</p>
       </div>
 
       <Button
@@ -128,24 +128,24 @@ function SortableIndicador({ id, indicador, onRemove }: { id: string; indicador:
 
 // --- Main Page Component ---
 
-export default function CreadorFormularioPage({ params }: { params: Promise<{ id: string }> }) {
+export default function FormBuilderPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
   const router = useRouter();
   const { user } = useAuth();
   
-  const proyecto = PROYECTOS.find((p) => p.id === id);
+  const project = PROJECTS.find((p) => p.id === id);
   
   // State
-  const [nombreForm, setNombreForm] = useState("");
-  const [indicadoresForm, setIndicadoresForm] = useState<Indicador[]>([]);
-  const [usuariosAsignados, setUsuariosAsignados] = useState<string[]>([]);
-  const [bancoIndicadores, setBancoIndicadores] = useState<Indicador[]>(INDICADORES);
+  const [formName, setFormName] = useState("");
+  const [formIndicators, setFormIndicators] = useState<Indicator[]>([]);
+  const [assignedUsers, setAssignedUsers] = useState<string[]>([]);
+  const [indicatorsBank, setIndicatorsBank] = useState<Indicator[]>(INDICATORS);
   
   // Modal state for new indicator
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [activeDragId, setActiveDragId] = useState<string | null>(null);
   
-  const usuariosCliente = USUARIOS.filter(u => u.clienteId === proyecto?.clienteId);
+  const clientUsers = USERS.filter(u => u.clientId === project?.clientId);
 
   // DnD Setup
   const sensors = useSensors(
@@ -155,7 +155,7 @@ export default function CreadorFormularioPage({ params }: { params: Promise<{ id
   
   const { setNodeRef: setDroppableRef } = useDroppable({ id: "canvas" });
 
-  if (!proyecto || !user) return null;
+  if (!project || !user) return null;
 
   function handleDragStart(event: DragStartEvent) {
     setActiveDragId(event.active.id as string);
@@ -172,9 +172,9 @@ export default function CreadorFormularioPage({ params }: { params: Promise<{ id
     // Dropped from bank to canvas
     if (activeIdStr.startsWith("bank-") && over.id === "canvas") {
       const indId = activeIdStr.replace("bank-", "");
-      const indicador = bancoIndicadores.find(i => i.id === indId);
-      if (indicador && !indicadoresForm.find(i => i.id === indId)) {
-        setIndicadoresForm((prev) => [...prev, indicador]);
+      const indicator = indicatorsBank.find(i => i.id === indId);
+      if (indicator && !formIndicators.find(i => i.id === indId)) {
+        setFormIndicators((prev) => [...prev, indicator]);
       }
       return;
     }
@@ -182,7 +182,7 @@ export default function CreadorFormularioPage({ params }: { params: Promise<{ id
     // Reordering within canvas
     if (!activeIdStr.startsWith("bank-") && over.id !== "canvas") {
       if (active.id !== over.id) {
-        setIndicadoresForm((items) => {
+        setFormIndicators((items) => {
           const oldIndex = items.findIndex((i) => i.id === active.id);
           const newIndex = items.findIndex((i) => i.id === over.id);
           return arrayMove(items, oldIndex, newIndex);
@@ -191,48 +191,48 @@ export default function CreadorFormularioPage({ params }: { params: Promise<{ id
     }
   }
 
-  const handleSaveIndicador = (nuevo: Omit<Indicador, "id">) => {
-    const newInd: Indicador = { ...nuevo, id: `new-ind-${Date.now()}` };
-    setBancoIndicadores((prev) => [...prev, newInd]);
+  const handleSaveIndicator = (newIndicator: Omit<Indicator, "id">) => {
+    const newInd: Indicator = { ...newIndicator, id: `new-ind-${Date.now()}` };
+    setIndicatorsBank((prev) => [...prev, newInd]);
   };
 
-  const handleGuardar = (estado: "borrador" | "enviado") => {
-    if (!nombreForm || indicadoresForm.length === 0) {
+  const handleSave = (status: "borrador" | "enviado") => {
+    if (!formName || formIndicators.length === 0) {
       alert("Debes ingresar un nombre y agregar al menos un indicador.");
       return;
     }
-    if (estado === "enviado" && usuariosAsignados.length === 0) {
+    if (status === "enviado" && assignedUsers.length === 0) {
       alert("Debes seleccionar al menos un usuario para enviar.");
       return;
     }
     
     // Aquí en un entorno real se haría un POST al backend
-    alert(`Formulario guardado como ${estado}. Serás redirigido.`);
-    router.push(`/proyectos/${proyecto.id}`);
+    alert(`Formulario guardado como ${status}. Serás redirigido.`);
+    router.push(`/projects/${project.id}`);
   };
 
-  const activeIndicador = activeDragId?.startsWith("bank-") 
-    ? bancoIndicadores.find(i => i.id === activeDragId.replace("bank-", ""))
-    : indicadoresForm.find(i => i.id === activeDragId);
+  const activeIndicator = activeDragId?.startsWith("bank-") 
+    ? indicatorsBank.find(i => i.id === activeDragId.replace("bank-", ""))
+    : formIndicators.find(i => i.id === activeDragId);
 
   return (
     <div className="h-[calc(100vh-8rem)] flex flex-col space-y-4">
       {/* Header */}
       <div className="flex items-center justify-between shrink-0">
         <div className="flex items-center gap-4">
-          <Link href={`/proyectos/${proyecto.id}`} className="p-2 -ml-2 rounded-lg hover:bg-secondary/50 text-muted-foreground hover:text-foreground transition-colors">
+          <Link href={`/projects/${project.id}`} className="p-2 -ml-2 rounded-lg hover:bg-secondary/50 text-muted-foreground hover:text-foreground transition-colors">
             <ChevronLeft className="w-5 h-5" />
           </Link>
           <div>
             <h1 className="text-xl font-bold tracking-tight">Creador de Formulario</h1>
-            <p className="text-sm text-muted-foreground">{proyecto.nombre}</p>
+            <p className="text-sm text-muted-foreground">{project.name}</p>
           </div>
         </div>
         <div className="flex items-center gap-3">
-          <Button variant="outline" onClick={() => handleGuardar("borrador")} className="gap-2">
+          <Button variant="outline" onClick={() => handleSave("borrador")} className="gap-2">
             <Save className="w-4 h-4" /> Guardar Borrador
           </Button>
-          <Button onClick={() => handleGuardar("enviado")} className="bg-emerald-600 hover:bg-emerald-500 text-white gap-2">
+          <Button onClick={() => handleSave("enviado")} className="bg-emerald-600 hover:bg-emerald-500 text-white gap-2">
             <Send className="w-4 h-4" /> Enviar Formulario
           </Button>
         </div>
@@ -264,8 +264,8 @@ export default function CreadorFormularioPage({ params }: { params: Promise<{ id
             </div>
             <div className="flex-1 overflow-y-auto p-3">
               <div className="grid grid-cols-2 lg:grid-cols-1 gap-2">
-                {bancoIndicadores.map((ind) => (
-                  <DraggableIndicador key={ind.id} indicador={ind} />
+                {indicatorsBank.map((ind) => (
+                  <DraggableIndicator key={ind.id} indicator={ind} />
                 ))}
               </div>
             </div>
@@ -275,8 +275,8 @@ export default function CreadorFormularioPage({ params }: { params: Promise<{ id
           <Card className="flex-1 flex flex-col bg-card/40 border-border/50 min-h-[400px]">
             <div className="p-6 border-b border-border/50 shrink-0">
               <Input 
-                value={nombreForm}
-                onChange={(e) => setNombreForm(e.target.value)}
+                value={formName}
+                onChange={(e) => setFormName(e.target.value)}
                 placeholder="Nombre del formulario (Ej: Reporte Ambiental 2025)..."
                 className="text-2xl font-bold h-14 bg-transparent border-transparent hover:border-border focus-visible:ring-0 focus-visible:border-emerald-500/50 px-2"
               />
@@ -290,19 +290,19 @@ export default function CreadorFormularioPage({ params }: { params: Promise<{ id
               )}
             >
               <div className="max-w-2xl mx-auto space-y-3 pb-20">
-                {indicadoresForm.length === 0 ? (
+                {formIndicators.length === 0 ? (
                   <div className="h-48 flex flex-col items-center justify-center border-2 border-dashed border-border/50 rounded-xl text-muted-foreground bg-card/30">
                     <LayoutList className="w-8 h-8 mb-3 opacity-20" />
                     <p>Arrastra indicadores desde el panel izquierdo hacia aquí</p>
                   </div>
                 ) : (
-                  <SortableContext items={indicadoresForm.map(i => i.id)} strategy={verticalListSortingStrategy}>
-                    {indicadoresForm.map((ind) => (
-                      <SortableIndicador 
+                  <SortableContext items={formIndicators.map(i => i.id)} strategy={verticalListSortingStrategy}>
+                    {formIndicators.map((ind) => (
+                      <SortableIndicator 
                         key={ind.id} 
                         id={ind.id} 
-                        indicador={ind} 
-                        onRemove={() => setIndicadoresForm(prev => prev.filter(i => i.id !== ind.id))}
+                        indicator={ind} 
+                        onRemove={() => setFormIndicators(prev => prev.filter(i => i.id !== ind.id))}
                       />
                     ))}
                   </SortableContext>
@@ -321,23 +321,23 @@ export default function CreadorFormularioPage({ params }: { params: Promise<{ id
                 Selecciona los usuarios del cliente que deberán llenar este formulario. Se creará una instancia individual para cada uno.
               </p>
               
-              {usuariosCliente.length === 0 ? (
+              {clientUsers.length === 0 ? (
                 <p className="text-sm text-amber-400">No hay usuarios registrados para este cliente.</p>
               ) : (
-                usuariosCliente.map(u => (
+                clientUsers.map(u => (
                   <label key={u.id} className="flex items-start gap-3 p-3 rounded-lg border border-border/50 bg-card hover:bg-secondary/40 cursor-pointer transition-colors">
                     <Checkbox 
                       className="mt-0.5"
-                      checked={usuariosAsignados.includes(u.email)}
+                      checked={assignedUsers.includes(u.email)}
                       onCheckedChange={(checked) => {
-                        if (checked) setUsuariosAsignados(prev => [...prev, u.email]);
-                        else setUsuariosAsignados(prev => prev.filter(email => email !== u.email));
+                        if (checked) setAssignedUsers(prev => [...prev, u.email]);
+                        else setAssignedUsers(prev => prev.filter(email => email !== u.email));
                       }}
                     /> 
                     <div className="flex flex-col">
-                      <span className="text-sm font-medium">{u.nombre}</span>
+                      <span className="text-sm font-medium">{u.name}</span>
                       <span className="text-xs text-muted-foreground">{u.email}</span>
-                      <span className="text-[10px] uppercase text-emerald-400 mt-1">{u.rol.replace("_", " ")}</span>
+                      <span className="text-[10px] uppercase text-emerald-400 mt-1">{u.role.replace("_", " ")}</span>
                     </div>
                   </label>
                 ))
@@ -348,22 +348,22 @@ export default function CreadorFormularioPage({ params }: { params: Promise<{ id
 
         {/* Drag Overlay for visual feedback */}
         <DragOverlay dropAnimation={{ duration: 150, easing: "cubic-bezier(0.18, 0.67, 0.6, 1.22)" }}>
-          {activeIndicador ? (
+          {activeIndicator ? (
             <div className="opacity-90 rotate-2 scale-105 shadow-2xl">
               {activeDragId?.startsWith("bank-") ? (
-                <DraggableIndicador indicador={activeIndicador} />
+                <DraggableIndicator indicator={activeIndicator} />
               ) : (
-                <SortableIndicador id={activeIndicador.id} indicador={activeIndicador} onRemove={() => {}} />
+                <SortableIndicator id={activeIndicator.id} indicator={activeIndicator} onRemove={() => {}} />
               )}
             </div>
           ) : null}
         </DragOverlay>
       </DndContext>
 
-      <IndicadorModal 
+      <IndicatorModal 
         open={isModalOpen} 
         onOpenChange={setIsModalOpen} 
-        onSave={handleSaveIndicador} 
+        onSave={handleSaveIndicator} 
       />
     </div>
   );

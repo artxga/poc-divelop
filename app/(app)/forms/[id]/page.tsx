@@ -4,19 +4,19 @@ import { use, useState } from "react";
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import {
-  FORMULARIOS_ENVIADOS,
-  FORMULARIO_TEMPLATES,
-  PROYECTOS,
-  INDICADORES,
-  RESPUESTAS,
-  COMENTARIOS,
-  HISTORIAL,
-  ESTANDAR_CONFIG,
-  CATEGORIA_CONFIG,
-  ESTADO_FORM_CONFIG,
-  USUARIOS,
-  type RespuestaIndicador,
-  type Indicador,
+  FORM_SUBMISSIONS,
+  FORM_TEMPLATES,
+  PROJECTS,
+  INDICATORS,
+  RESPONSES,
+  COMMENTS,
+  HISTORY,
+  STANDARD_CONFIG,
+  CATEGORY_CONFIG,
+  FORM_STATUS_CONFIG,
+  USERS,
+  type IndicatorResponse,
+  type Indicator,
 } from "@/app/_lib/mock-data";
 import { useAuth } from "@/app/_lib/auth-context";
 import { Card, CardContent } from "@/components/ui/card";
@@ -43,67 +43,67 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
-export default function FormularioDetailPage({ params }: PageProps<"/formularios/[id]">) {
+export default function FormDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
   const { user } = useAuth();
   
-  const envio = FORMULARIOS_ENVIADOS.find((f) => f.id === id);
-  if (!envio) notFound();
+  const submission = FORM_SUBMISSIONS.find((f) => f.id === id);
+  if (!submission) notFound();
   if (!user) return null;
 
-  const template = FORMULARIO_TEMPLATES.find(t => t.id === envio.templateId);
-  const proyecto = PROYECTOS.find((p) => p.id === envio.proyectoId);
-  const userAsignado = USUARIOS.find(u => u.email === envio.usuarioEmail);
+  const template = FORM_TEMPLATES.find(t => t.id === submission.templateId);
+  const project = PROJECTS.find((p) => p.id === submission.projectId);
+  const assignedUser = USERS.find(u => u.email === submission.userEmail);
   
   const [activeTab, setActiveTab] = useState<string>("indicadores");
   
   // Respuestas State
-  const [respuestas, setRespuestas] = useState<Record<string, RespuestaIndicador>>(() => {
-    const map: Record<string, RespuestaIndicador> = {};
-    RESPUESTAS.filter((r) => r.envioId === id).forEach((r) => { map[r.indicadorId] = r; });
+  const [responses, setResponses] = useState<Record<string, IndicatorResponse>>(() => {
+    const map: Record<string, IndicatorResponse> = {};
+    RESPONSES.filter((r) => r.submissionId === id).forEach((r) => { map[r.indicatorId] = r; });
     return map;
   });
 
   // Trazabilidad State
-  const [comentarios, setComentarios] = useState(COMENTARIOS.filter((c) => c.envioId === id));
-  const [historial] = useState(HISTORIAL.filter((h) => h.envioId === id));
-  const [comentarioInput, setComentarioInput] = useState("");
+  const [comments, setComments] = useState(COMMENTS.filter((c) => c.submissionId === id));
+  const [history] = useState(HISTORY.filter((h) => h.submissionId === id));
+  const [commentInput, setCommentInput] = useState("");
 
-  const estadoCfg = ESTADO_FORM_CONFIG[envio.estado];
-  const disabled = envio.estado === "aprobado" || envio.estado === "enviado";
+  const statusCfg = FORM_STATUS_CONFIG[submission.status];
+  const disabled = submission.status === "aprobado" || submission.status === "enviado";
 
-  function updateValor(indicadorId: string, valor: string | number | boolean) {
-    setRespuestas((prev) => ({
+  function updateValue(indicatorId: string, value: string | number | boolean) {
+    setResponses((prev) => ({
       ...prev,
-      [indicadorId]: {
-        ...(prev[indicadorId] ?? { id: `new-${indicadorId}`, envioId: id, indicadorId }),
-        valor,
+      [indicatorId]: {
+        ...(prev[indicatorId] ?? { id: `new-${indicatorId}`, submissionId: id, indicatorId }),
+        value,
       },
     }));
   }
 
-  function addComentario(isEvidencia: boolean = false) {
-    if (!comentarioInput.trim()) return;
-    setComentarios((prev) => [
+  function addComment(isEvidence: boolean = false) {
+    if (!commentInput.trim()) return;
+    setComments((prev) => [
       ...prev,
       {
         id: `c-${Date.now()}`,
-        envioId: id,
-        autor: user!.nombre,
-        rol: user!.rol,
-        texto: comentarioInput,
-        fecha: new Date().toISOString().split("T")[0],
-        isEvidencia,
-        fileName: isEvidencia ? "evidencia_adjunta.pdf" : undefined,
+        submissionId: id,
+        author: user!.name,
+        role: user!.role,
+        text: commentInput,
+        date: new Date().toISOString().split("T")[0],
+        isEvidence,
+        fileName: isEvidence ? "evidencia_adjunta.pdf" : undefined,
       },
     ]);
-    setComentarioInput("");
+    setCommentInput("");
   }
 
-  function renderInput(ind: Indicador) {
-    const valor = respuestas[ind.id]?.valor;
+  function renderInput(ind: Indicator) {
+    const value = responses[ind.id]?.value;
 
-    switch (ind.tipoDato) {
+    switch (ind.dataType) {
       case "numero":
       case "porcentaje":
         return (
@@ -111,21 +111,21 @@ export default function FormularioDetailPage({ params }: PageProps<"/formularios
             <Input
               type="number"
               placeholder="0"
-              value={(valor as number) ?? ""}
+              value={(value as number) ?? ""}
               disabled={disabled}
-              onChange={(e) => updateValor(ind.id, parseFloat(e.target.value) || 0)}
+              onChange={(e) => updateValue(ind.id, parseFloat(e.target.value) || 0)}
               className="w-48"
             />
-            {ind.unidad && <span className="flex items-center text-sm text-muted-foreground">{ind.unidad}</span>}
+            {ind.unit && <span className="flex items-center text-sm text-muted-foreground">{ind.unit}</span>}
           </div>
         );
       case "texto":
         return (
           <Textarea
             placeholder="Ingresa una descripción..."
-            value={(valor as string) ?? ""}
+            value={(value as string) ?? ""}
             disabled={disabled}
-            onChange={(e) => updateValor(ind.id, e.target.value)}
+            onChange={(e) => updateValue(ind.id, e.target.value)}
             rows={3}
             className="max-w-xl"
           />
@@ -136,9 +136,9 @@ export default function FormularioDetailPage({ params }: PageProps<"/formularios
             {[true, false].map((v) => (
               <label key={String(v)} className="flex items-center gap-2 cursor-pointer">
                 <Checkbox
-                  checked={valor === v}
+                  checked={value === v}
                   disabled={disabled}
-                  onCheckedChange={() => updateValor(ind.id, v)}
+                  onCheckedChange={() => updateValue(ind.id, v)}
                 />
                 <span className="text-sm">{v ? "Sí" : "No"}</span>
               </label>
@@ -148,15 +148,15 @@ export default function FormularioDetailPage({ params }: PageProps<"/formularios
       case "seleccion":
         return (
           <Select
-            value={(valor as string) ?? ""}
+            value={(value as string) ?? ""}
             disabled={disabled}
-            onValueChange={(v) => updateValor(ind.id, v)}
+            onValueChange={(v) => updateValue(ind.id, v)}
           >
             <SelectTrigger className="w-48">
               <SelectValue placeholder="Selecciona..." />
             </SelectTrigger>
             <SelectContent>
-              {(ind.opciones ?? []).map((opt) => (
+              {(ind.options ?? []).map((opt) => (
                 <SelectItem key={opt} value={opt}>{opt}</SelectItem>
               ))}
             </SelectContent>
@@ -171,24 +171,24 @@ export default function FormularioDetailPage({ params }: PageProps<"/formularios
     <div className="space-y-5 h-full flex flex-col">
       {/* Breadcrumb */}
       <div className="flex items-center gap-2 shrink-0">
-        <Link href={`/proyectos/${envio.proyectoId}/formularios/${template?.id}`} className="flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground transition-colors">
-          <ChevronLeft className="w-3.5 h-3.5" /> Envíos de {template?.nombre}
+        <Link href={`/projects/${submission.projectId}/forms/${template?.id}`} className="flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground transition-colors">
+          <ChevronLeft className="w-3.5 h-3.5" /> Envíos de {template?.name}
         </Link>
         <span className="text-muted-foreground">/</span>
-        <span className="text-sm font-medium truncate">{userAsignado?.nombre || envio.usuarioEmail}</span>
+        <span className="text-sm font-medium truncate">{assignedUser?.name || submission.userEmail}</span>
       </div>
 
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center gap-4 justify-between shrink-0">
         <div>
-          <h1 className="text-xl font-bold">{template?.nombre}</h1>
+          <h1 className="text-xl font-bold">{template?.name}</h1>
           <p className="text-sm text-muted-foreground mt-0.5 flex items-center gap-1.5">
-            <User className="w-4 h-4" /> Asignado a: <span className="font-medium text-foreground">{userAsignado?.nombre || envio.usuarioEmail}</span>
+            <User className="w-4 h-4" /> Asignado a: <span className="font-medium text-foreground">{assignedUser?.name || submission.userEmail}</span>
           </p>
         </div>
         <div className="flex items-center gap-3">
-          <span className={`px-3 py-1 text-sm font-medium rounded-full border ${estadoCfg.color}`}>
-            Estado: {estadoCfg.label}
+          <span className={`px-3 py-1 text-sm font-medium rounded-full border ${statusCfg.color}`}>
+            Estado: {statusCfg.label}
           </span>
           <Button 
             disabled={disabled}
@@ -212,25 +212,25 @@ export default function FormularioDetailPage({ params }: PageProps<"/formularios
 
         <TabsContent value="indicadores" className="flex-1 min-h-0 mt-4 data-[state=active]:flex flex-col gap-4">
           <div className="flex-1 overflow-y-auto space-y-3 pr-2 pb-10">
-            {INDICADORES.filter((i) => template?.indicadores.includes(i.id)).map((ind) => {
-              const catCfg = CATEGORIA_CONFIG[ind.categoria];
+            {INDICATORS.filter((i) => template?.indicators.includes(i.id)).map((ind) => {
+              const catCfg = CATEGORY_CONFIG[ind.category];
               return (
                 <Card key={ind.id} className="border-border/50 bg-card/60 backdrop-blur-sm">
                   <CardContent className="pt-4 pb-4">
                     <div className="flex flex-col sm:flex-row gap-4">
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2 mb-2">
-                          <span className="font-mono text-xs text-muted-foreground">{ind.codigo}</span>
+                          <span className="font-mono text-xs text-muted-foreground">{ind.code}</span>
                           <div className={`flex items-center gap-1 text-xs ${catCfg.color}`}>
                             <div className={`w-1.5 h-1.5 rounded-full ${catCfg.dot}`} />
-                            {ind.categoria}
+                            {ind.category}
                           </div>
                           <span className="text-xs px-2 py-0.5 rounded-full border border-border/50 text-muted-foreground ml-auto">
-                            {ind.estandar}
+                            {ind.standard}
                           </span>
                         </div>
-                        <p className="font-medium text-sm">{ind.nombre}</p>
-                        <p className="text-xs text-muted-foreground mt-1">{ind.descripcion}</p>
+                        <p className="font-medium text-sm">{ind.name}</p>
+                        <p className="text-xs text-muted-foreground mt-1">{ind.description}</p>
                         
                         <div className="mt-4">
                           {renderInput(ind)}
@@ -241,7 +241,7 @@ export default function FormularioDetailPage({ params }: PageProps<"/formularios
                 </Card>
               );
             })}
-            {(!template?.indicadores || template.indicadores.length === 0) && (
+            {(!template?.indicators || template.indicators.length === 0) && (
               <p className="text-sm text-muted-foreground p-4 text-center border border-dashed border-border/50 rounded-lg bg-card/30">
                 No hay indicadores configurados en este formulario.
               </p>
@@ -257,22 +257,22 @@ export default function FormularioDetailPage({ params }: PageProps<"/formularios
               <h2 className="font-semibold text-sm">Conversación del Formulario</h2>
             </div>
             <div className="flex-1 overflow-y-auto p-4 space-y-4">
-              {comentarios.map((c) => (
-                <div key={c.id} className={cn("flex flex-col max-w-[85%]", c.autor === user.nombre ? "ml-auto" : "mr-auto")}>
+              {comments.map((c) => (
+                <div key={c.id} className={cn("flex flex-col max-w-[85%]", c.author === user.name ? "ml-auto" : "mr-auto")}>
                   <div className="flex items-baseline gap-2 mb-1 px-1">
-                    <span className="text-xs font-semibold">{c.autor}</span>
-                    <span className="text-[10px] text-muted-foreground">{c.fecha}</span>
+                    <span className="text-xs font-semibold">{c.author}</span>
+                    <span className="text-[10px] text-muted-foreground">{c.date}</span>
                   </div>
                   <div className={cn(
                     "p-3 rounded-2xl text-sm",
-                    c.autor === user.nombre 
+                    c.author === user.name 
                       ? "bg-blue-600 text-white rounded-tr-sm" 
-                      : c.rol === "consultor" || c.rol === "admin" 
+                      : c.role === "consultor" || c.role === "admin" 
                         ? "bg-secondary text-foreground rounded-tl-sm border border-border/50"
                         : "bg-emerald-500/15 text-emerald-100 rounded-tl-sm border border-emerald-500/20"
                   )}>
-                    {c.texto}
-                    {c.isEvidencia && (
+                    {c.text}
+                    {c.isEvidence && (
                       <div className="mt-2 flex items-center gap-2 bg-black/20 p-2 rounded-lg text-xs">
                         <Paperclip className="w-3.5 h-3.5" />
                         <span className="truncate font-medium">{c.fileName}</span>
@@ -286,14 +286,14 @@ export default function FormularioDetailPage({ params }: PageProps<"/formularios
               <div className="flex gap-2">
                 <Input 
                   placeholder="Escribe un comentario..." 
-                  value={comentarioInput}
-                  onChange={(e) => setComentarioInput(e.target.value)}
-                  onKeyDown={(e) => e.key === "Enter" && addComentario(false)}
+                  value={commentInput}
+                  onChange={(e) => setCommentInput(e.target.value)}
+                  onKeyDown={(e) => e.key === "Enter" && addComment(false)}
                 />
-                <Button variant="outline" size="icon" onClick={() => addComentario(true)} title="Adjuntar evidencia">
+                <Button variant="outline" size="icon" onClick={() => addComment(true)} title="Adjuntar evidencia">
                   <Paperclip className="w-4 h-4" />
                 </Button>
-                <Button className="bg-blue-600 hover:bg-blue-500 text-white" onClick={() => addComentario(false)}>
+                <Button className="bg-blue-600 hover:bg-blue-500 text-white" onClick={() => addComment(false)}>
                   <Send className="w-4 h-4" />
                 </Button>
               </div>
@@ -308,17 +308,17 @@ export default function FormularioDetailPage({ params }: PageProps<"/formularios
             </div>
             <div className="flex-1 overflow-y-auto p-4">
               <div className="space-y-4">
-                {historial.map((h, i) => (
+                {history.map((h, i) => (
                   <div key={h.id} className="relative pl-6">
-                    {i !== historial.length - 1 && (
+                    {i !== history.length - 1 && (
                       <div className="absolute left-[11px] top-5 bottom-[-16px] w-px bg-border/50" />
                     )}
                     <div className="absolute left-1.5 top-1.5 w-2 h-2 rounded-full bg-amber-400 ring-4 ring-card" />
-                    <p className="text-xs font-semibold text-foreground">{h.evento}</p>
+                    <p className="text-xs font-semibold text-foreground">{h.event}</p>
                     <div className="flex items-center gap-2 mt-0.5 text-xs text-muted-foreground">
-                      <span>{h.autor}</span>
+                      <span>{h.author}</span>
                       <span>&middot;</span>
-                      <span>{h.fecha}</span>
+                      <span>{h.date}</span>
                     </div>
                   </div>
                 ))}

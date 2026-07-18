@@ -1,6 +1,6 @@
 "use client";
 
-import { PROYECTOS, FORMULARIOS_ENVIADOS, FORMULARIO_TEMPLATES, DATOS_MENSUALES, DATOS_ESTANDAR, ESTADO_FORM_CONFIG } from "@/app/_lib/mock-data";
+import { PROJECTS, FORM_SUBMISSIONS, FORM_TEMPLATES, MONTHLY_DATA, STANDARD_DATA, FORM_STATUS_CONFIG } from "@/app/_lib/mock-data";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
@@ -27,17 +27,17 @@ import {
 } from "lucide-react";
 
 // Compute global stats
-const totalProyectos = PROYECTOS.filter((p) => p.estado === "activo").length;
-const aprobados = FORMULARIOS_ENVIADOS.filter((f) => f.estado === "aprobado").length;
-const pendientes = FORMULARIOS_ENVIADOS.filter((f) => f.estado === "enviado").length;
-const observados = FORMULARIOS_ENVIADOS.filter((f) => f.estado === "observado").length;
-const totalFormularios = FORMULARIOS_ENVIADOS.length;
-const pctCompletado = totalFormularios > 0 ? Math.round((aprobados / totalFormularios) * 100) : 0;
+const totalProjects = PROJECTS.filter((p) => p.status === "activo").length;
+const approved = FORM_SUBMISSIONS.filter((f) => f.status === "aprobado").length;
+const pending = FORM_SUBMISSIONS.filter((f) => f.status === "enviado").length;
+const observed = FORM_SUBMISSIONS.filter((f) => f.status === "observado").length;
+const totalForms = FORM_SUBMISSIONS.length;
+const pctCompleted = totalForms > 0 ? Math.round((approved / totalForms) * 100) : 0;
 
 const KPIS = [
   {
     label: "Proyectos Activos",
-    value: totalProyectos,
+    value: totalProjects,
     icon: FolderOpen,
     color: "text-blue-400",
     bg: "bg-blue-500/10",
@@ -46,16 +46,16 @@ const KPIS = [
   },
   {
     label: "Indicadores Aprobados",
-    value: `${pctCompletado}%`,
+    value: `${pctCompleted}%`,
     icon: CheckCircle2,
     color: "text-emerald-400",
     bg: "bg-emerald-500/10",
     border: "border-emerald-500/20",
-    trend: `${aprobados} de ${totalFormularios}`,
+    trend: `${approved} de ${totalForms}`,
   },
   {
     label: "Pendientes de Revisión",
-    value: pendientes,
+    value: pending,
     icon: Clock,
     color: "text-amber-400",
     bg: "bg-amber-500/10",
@@ -64,7 +64,7 @@ const KPIS = [
   },
   {
     label: "Con Observaciones",
-    value: observados,
+    value: observed,
     icon: AlertTriangle,
     color: "text-red-400",
     bg: "bg-red-500/10",
@@ -73,7 +73,7 @@ const KPIS = [
   },
 ];
 
-const PROYECTO_ESTADO = {
+const PROJECT_STATUS = {
   activo: { label: "Activo", class: "bg-emerald-500/15 text-emerald-400 border-emerald-500/20" },
   pausado: { label: "Pausado", class: "bg-amber-500/15 text-amber-400 border-amber-500/20" },
   completado: { label: "Completado", class: "bg-blue-500/15 text-blue-400 border-blue-500/20" },
@@ -131,7 +131,7 @@ export default function DashboardPage() {
           </CardHeader>
           <CardContent>
             <ResponsiveContainer width="100%" height={220}>
-              <BarChart data={DATOS_MENSUALES} margin={{ top: 0, right: 0, left: -20, bottom: 0 }}>
+              <BarChart data={MONTHLY_DATA} margin={{ top: 0, right: 0, left: -20, bottom: 0 }}>
                 <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" />
                 <XAxis dataKey="mes" tick={{ fill: "#94a3b8", fontSize: 12 }} axisLine={false} tickLine={false} />
                 <YAxis tick={{ fill: "#94a3b8", fontSize: 12 }} axisLine={false} tickLine={false} />
@@ -158,7 +158,7 @@ export default function DashboardPage() {
             <ResponsiveContainer width="100%" height={180}>
               <PieChart>
                 <Pie
-                  data={DATOS_ESTANDAR}
+                  data={STANDARD_DATA}
                   cx="50%"
                   cy="50%"
                   innerRadius={50}
@@ -166,7 +166,7 @@ export default function DashboardPage() {
                   paddingAngle={3}
                   dataKey="valor"
                 >
-                  {DATOS_ESTANDAR.map((entry, index) => (
+                  {STANDARD_DATA.map((entry, index) => (
                     <Cell key={index} fill={entry.fill} />
                   ))}
                 </Pie>
@@ -176,7 +176,7 @@ export default function DashboardPage() {
               </PieChart>
             </ResponsiveContainer>
             <div className="grid grid-cols-2 gap-2 mt-2">
-              {DATOS_ESTANDAR.map((e) => (
+              {STANDARD_DATA.map((e) => (
                 <div key={e.estandar} className="flex items-center gap-2 text-xs">
                   <div className="w-2.5 h-2.5 rounded-full shrink-0" style={{ background: e.fill }} />
                   <span className="text-muted-foreground">{e.estandar}</span>
@@ -197,41 +197,41 @@ export default function DashboardPage() {
               <CardDescription>Progreso de llenado por formulario enviado</CardDescription>
             </div>
             <Badge variant="outline" className="text-xs">
-              {FORMULARIOS_ENVIADOS.length} formularios
+              {FORM_SUBMISSIONS.length} formularios
             </Badge>
           </div>
         </CardHeader>
         <CardContent>
           <div className="space-y-4">
-            {FORMULARIOS_ENVIADOS.map((form) => {
-              const template = FORMULARIO_TEMPLATES.find((t) => t.id === form.templateId);
-              const proyecto = PROYECTOS.find((p) => p.id === form.proyectoId);
-              const estadoCfg = ESTADO_FORM_CONFIG[form.estado];
+            {FORM_SUBMISSIONS.map((form) => {
+              const template = FORM_TEMPLATES.find((t) => t.id === form.templateId);
+              const project = PROJECTS.find((p) => p.id === form.projectId);
+              const statusCfg = FORM_STATUS_CONFIG[form.status];
               return (
                 <div key={form.id} className="flex flex-col sm:flex-row sm:items-center gap-3 p-3 rounded-lg bg-secondary/20 hover:bg-secondary/40 transition-all border border-transparent hover:border-border/50">
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 mb-1">
-                      <p className="font-medium text-sm truncate">{template?.nombre} - {form.usuarioEmail}</p>
-                      <span className={`shrink-0 text-xs px-2 py-0.5 rounded-full border ${estadoCfg.color}`}>
-                        {estadoCfg.label}
+                      <p className="font-medium text-sm truncate">{template?.name} - {form.userEmail}</p>
+                      <span className={`shrink-0 text-xs px-2 py-0.5 rounded-full border ${statusCfg.color}`}>
+                        {statusCfg.label}
                       </span>
                     </div>
-                    <p className="text-xs text-muted-foreground">{proyecto?.nombre}</p>
+                    <p className="text-xs text-muted-foreground">{project?.name}</p>
                     <div className="flex flex-wrap gap-1 mt-2">
                       <span className="text-xs bg-secondary px-1.5 py-0.5 rounded text-muted-foreground">
-                        {template?.indicadores.length} indicadores
+                        {template?.indicators.length} indicadores
                       </span>
                     </div>
                   </div>
                   <div className="w-full sm:w-48 shrink-0">
                     <div className="flex items-center justify-between mb-1">
                       <span className="text-xs text-muted-foreground">Progreso</span>
-                      <span className={`text-xs font-semibold ${form.progreso >= 80 ? "text-emerald-400" : form.progreso >= 50 ? "text-amber-400" : "text-red-400"}`}>
-                        {form.progreso}%
+                      <span className={`text-xs font-semibold ${form.progress >= 80 ? "text-emerald-400" : form.progress >= 50 ? "text-amber-400" : "text-red-400"}`}>
+                        {form.progress}%
                       </span>
                     </div>
                     <Progress
-                      value={form.progreso}
+                      value={form.progress}
                       className="h-2 bg-secondary"
                     />
                   </div>

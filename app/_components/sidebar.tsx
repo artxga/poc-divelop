@@ -30,38 +30,38 @@ const NAV_ITEMS = [
   },
   {
     label: "Indicadores",
-    href: "/indicadores",
+    href: "/indicators",
     icon: BookOpen,
     description: "Biblioteca de indicadores",
   },
   {
     label: "Clientes",
-    href: "/clientes",
+    href: "/clients",
     icon: Users,
     description: "Gestión de clientes y usuarios",
     roles: ["admin", "consultor"],
   },
   {
     label: "Proyectos",
-    href: "/proyectos",
+    href: "/projects",
     icon: FolderOpen,
     description: "Recojo de información",
   },
   {
     label: "Validación",
-    href: "/validacion",
+    href: "/validation",
     icon: CheckSquare,
     description: "Flujo de estados",
   },
   {
     label: "Reportes",
-    href: "/reportes",
+    href: "/reports",
     icon: BarChart3,
     description: "Análisis y exportación",
   },
 ];
 
-const ROL_CONFIG = {
+const ROLE_CONFIG = {
   admin: { label: "Administrador", icon: Shield, color: "text-purple-400" },
   consultor: { label: "Consultor", icon: Users, color: "text-blue-400" },
   cliente: { label: "Cliente Líder", icon: Shield, color: "text-emerald-400" },
@@ -74,8 +74,8 @@ export function Sidebar() {
 
   if (!user) return null;
 
-  const rolConfig = ROL_CONFIG[user.rol];
-  const RolIcon = rolConfig.icon;
+  const roleConfig = ROLE_CONFIG[user.role];
+  const RoleIcon = roleConfig.icon;
 
   return (
     <aside className="hidden lg:flex flex-col w-64 min-h-screen border-r border-border/50 bg-card/40 backdrop-blur-sm">
@@ -97,7 +97,7 @@ export function Sidebar() {
         </p>
         {NAV_ITEMS.map((item) => {
           // @ts-ignore
-          if (item.roles && !item.roles.includes(user.rol)) return null;
+          if (item.roles && !item.roles.includes(user.role)) return null;
 
           const isActive = pathname.startsWith(item.href);
           const Icon = item.icon;
@@ -135,10 +135,10 @@ export function Sidebar() {
             </AvatarFallback>
           </Avatar>
           <div className="flex-1 min-w-0">
-            <p className="text-sm font-medium truncate">{user.nombre}</p>
-            <div className={cn("flex items-center gap-1 text-xs", rolConfig.color)}>
-              <RolIcon className="w-3 h-3" />
-              {rolConfig.label}
+            <p className="text-sm font-medium truncate">{user.name}</p>
+            <div className={cn("flex items-center gap-1 text-xs", roleConfig.color)}>
+              <RoleIcon className="w-3 h-3" />
+              {roleConfig.label}
             </div>
           </div>
           <Tooltip>

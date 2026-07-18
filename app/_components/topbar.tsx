@@ -8,10 +8,11 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 
 const PAGE_TITLES: Record<string, string> = {
   "/dashboard": "Dashboard",
-  "/indicadores": "Biblioteca de Indicadores",
-  "/proyectos": "Proyectos",
-  "/validacion": "Validación de Indicadores",
-  "/reportes": "Reportería y Análisis",
+  "/indicators": "Biblioteca de Indicadores",
+  "/clients": "Clientes",
+  "/projects": "Proyectos",
+  "/validation": "Validación de Indicadores",
+  "/reports": "Reportería y Análisis",
 };
 
 export function TopBar() {
