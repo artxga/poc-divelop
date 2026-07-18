@@ -25,7 +25,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const stored = localStorage.getItem("divelop_user");
     if (stored) {
       try {
-        setUser(JSON.parse(stored));
+        const parsed = JSON.parse(stored);
+        const freshUser = USUARIOS.find((u) => u.email === parsed.email) || null;
+        if (freshUser) {
+          setUser(freshUser);
+        } else {
+          localStorage.removeItem("divelop_user");
+        }
       } catch {
         localStorage.removeItem("divelop_user");
       }

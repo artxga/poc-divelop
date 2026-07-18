@@ -4,10 +4,11 @@ import {
   RESPUESTAS,
   INDICADORES,
   PROYECTOS,
+  FORMULARIOS,
   DATOS_MENSUALES,
   DATOS_CATEGORIA,
   DATOS_ESTANDAR,
-  ESTADO_CONFIG,
+  ESTADO_FORM_CONFIG,
   ESTANDAR_CONFIG,
   CATEGORIA_CONFIG,
 } from "@/app/_lib/mock-data";
@@ -53,20 +54,22 @@ import { useState } from "react";
 function exportCSV() {
   const rows = RESPUESTAS.map((r) => {
     const ind = INDICADORES.find((i) => i.id === r.indicadorId);
-    const proy = PROYECTOS.find((p) => p.id === r.proyectoId);
+    const form = FORMULARIOS.find((f) => f.id === r.formularioId);
+    const proy = PROYECTOS.find((p) => p.id === form?.proyectoId);
+    
     return [
       proy?.nombre ?? "",
+      form?.nombre ?? "",
       ind?.codigo ?? "",
       ind?.nombre ?? "",
       ind?.estandar ?? "",
       ind?.categoria ?? "",
-      r.estado,
+      form?.estado ?? "",
       String(r.valor ?? ""),
       ind?.unidad ?? "",
-      r.ultimaEdicion,
     ].join(",");
   });
-  const header = "Proyecto,Código,Indicador,Estándar,Categoría,Estado,Valor,Unidad,Última Edición";
+  const header = "Proyecto,Formulario,Código,Indicador,Estándar,Categoría,Estado Formulario,Valor,Unidad";
   const csv = [header, ...rows].join("\n");
   const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
   const url = URL.createObjectURL(blob);
@@ -91,41 +94,48 @@ export default function ReportesPage() {
 
   const respuestasFiltradas = RESPUESTAS.filter((r) => {
     const ind = INDICADORES.find((i) => i.id === r.indicadorId);
-    const matchProy = filtroProyecto === "todos" || r.proyectoId === filtroProyecto;
+    const form = FORMULARIOS.find((f) => f.id === r.formularioId);
+    
+    const matchProy = filtroProyecto === "todos" || form?.proyectoId === filtroProyecto;
     const matchEst = filtroEstandar === "todos" || ind?.estandar === filtroEstandar;
     return matchProy && matchEst;
   });
 
   return (
     <div className="space-y-6">
-      {/* Header */}
       <div className="flex items-start justify-between gap-4">
         <div>
           <h1 className="text-2xl font-bold tracking-tight">Reportería y Análisis</h1>
           <p className="text-sm text-muted-foreground mt-0.5">
-            Tableros analíticos consolidados y exportación de datos ESG
+            Tableros analíticos filtrados por Proyecto
           </p>
         </div>
-        <Button
-          id="btn-exportar-csv"
-          onClick={exportCSV}
-          className="shrink-0 bg-emerald-600 hover:bg-emerald-500 text-white gap-2"
-        >
-          <FileDown className="w-4 h-4" />
-          Exportar CSV
-        </Button>
+        <div className="flex gap-2">
+          <Select value={filtroProyecto} onValueChange={setFiltroProyecto}>
+            <SelectTrigger className="w-56 border-emerald-500/30">
+              <SelectValue placeholder="Seleccionar Proyecto" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="todos">Todos los Proyectos</SelectItem>
+              {PROYECTOS.map((p) => (
+                <SelectItem key={p.id} value={p.id}>{p.nombre}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          <Button onClick={exportCSV} className="shrink-0 bg-emerald-600 hover:bg-emerald-500 text-white gap-2">
+            <FileDown className="w-4 h-4" /> Exportar CSV
+          </Button>
+        </div>
       </div>
 
-      {/* Charts grid */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-        {/* Bar chart por categoría */}
+        {/* Gráficos simulados que en la realidad reaccionarían a respuestasFiltradas */}
         <Card className="border-border/50 bg-card/60 backdrop-blur-sm">
           <CardHeader className="pb-2">
             <div className="flex items-center gap-2">
               <BarChart3 className="w-4 h-4 text-emerald-400" />
-              <CardTitle className="text-base">Indicadores por Categoría ESG</CardTitle>
+              <CardTitle className="text-base">Métricas por Categoría ESG</CardTitle>
             </div>
-            <CardDescription>Distribución por estándar y categoría</CardDescription>
           </CardHeader>
           <CardContent>
             <ResponsiveContainer width="100%" height={220}>
@@ -144,14 +154,12 @@ export default function ReportesPage() {
           </CardContent>
         </Card>
 
-        {/* Line chart tendencia */}
         <Card className="border-border/50 bg-card/60 backdrop-blur-sm">
           <CardHeader className="pb-2">
             <div className="flex items-center gap-2">
               <TrendingUp className="w-4 h-4 text-blue-400" />
-              <CardTitle className="text-base">Tendencia de Actividad</CardTitle>
+              <CardTitle className="text-base">Progreso del Proyecto</CardTitle>
             </div>
-            <CardDescription>Evolución mensual de indicadores</CardDescription>
           </CardHeader>
           <CardContent>
             <ResponsiveContainer width="100%" height={220}>
@@ -169,14 +177,12 @@ export default function ReportesPage() {
           </CardContent>
         </Card>
 
-        {/* Pie chart */}
         <Card className="border-border/50 bg-card/60 backdrop-blur-sm">
           <CardHeader className="pb-2">
             <div className="flex items-center gap-2">
               <PieIcon className="w-4 h-4 text-purple-400" />
-              <CardTitle className="text-base">Distribución por Estándar</CardTitle>
+              <CardTitle className="text-base">Porcentaje de Respuestas por Estándar</CardTitle>
             </div>
-            <CardDescription>Total de indicadores en uso</CardDescription>
           </CardHeader>
           <CardContent className="flex items-center gap-4">
             <ResponsiveContainer width="100%" height={200}>
@@ -202,22 +208,20 @@ export default function ReportesPage() {
           </CardContent>
         </Card>
 
-        {/* Radar chart */}
         <Card className="border-border/50 bg-card/60 backdrop-blur-sm">
           <CardHeader className="pb-2">
             <div className="flex items-center gap-2">
               <Activity className="w-4 h-4 text-amber-400" />
-              <CardTitle className="text-base">Comparativo de Madurez ESG</CardTitle>
+              <CardTitle className="text-base">Madurez ESG del Proyecto</CardTitle>
             </div>
-            <CardDescription>Proyecto actual vs. año anterior</CardDescription>
           </CardHeader>
           <CardContent>
             <ResponsiveContainer width="100%" height={220}>
               <RadarChart data={RADAR_DATA}>
                 <PolarGrid stroke="rgba(255,255,255,0.1)" />
                 <PolarAngleAxis dataKey="subject" tick={{ fill: "#94a3b8", fontSize: 11 }} />
-                <Radar name="2025" dataKey="A" stroke="#10b981" fill="#10b981" fillOpacity={0.25} />
-                <Radar name="2024" dataKey="B" stroke="#3b82f6" fill="#3b82f6" fillOpacity={0.15} />
+                <Radar name="Año Actual" dataKey="A" stroke="#10b981" fill="#10b981" fillOpacity={0.25} />
+                <Radar name="Año Anterior" dataKey="B" stroke="#3b82f6" fill="#3b82f6" fillOpacity={0.15} />
                 <Legend wrapperStyle={{ fontSize: 12, color: "#94a3b8" }} />
                 <Tooltip contentStyle={{ background: "hsl(222 47% 14%)", border: "1px solid hsl(217 33% 22%)", borderRadius: "8px", fontSize: 12 }} />
               </RadarChart>
@@ -226,28 +230,16 @@ export default function ReportesPage() {
         </Card>
       </div>
 
-      {/* Data table */}
       <Card className="border-border/50 bg-card/60 backdrop-blur-sm">
         <CardHeader className="pb-3">
           <div className="flex flex-col sm:flex-row sm:items-center gap-3 justify-between">
             <div>
-              <CardTitle className="text-base">Datos Consolidados</CardTitle>
-              <CardDescription>Vista detallada de todas las respuestas registradas</CardDescription>
+              <CardTitle className="text-base">Indicadores Recolectados</CardTitle>
+              <CardDescription>Visualizando respuestas filtradas</CardDescription>
             </div>
             <div className="flex gap-2">
-              <Select value={filtroProyecto} onValueChange={setFiltroProyecto}>
-                <SelectTrigger id="reporte-filtro-proyecto" className="w-48 h-8 text-xs">
-                  <SelectValue placeholder="Proyecto" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="todos">Todos los proyectos</SelectItem>
-                  {PROYECTOS.map((p) => (
-                    <SelectItem key={p.id} value={p.id}>{p.cliente}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
               <Select value={filtroEstandar} onValueChange={setFiltroEstandar}>
-                <SelectTrigger id="reporte-filtro-estandar" className="w-36 h-8 text-xs">
+                <SelectTrigger className="w-36 h-8 text-xs">
                   <SelectValue placeholder="Estándar" />
                 </SelectTrigger>
                 <SelectContent>
@@ -265,21 +257,21 @@ export default function ReportesPage() {
             <TableHeader>
               <TableRow className="border-border/50 hover:bg-transparent">
                 <TableHead className="pl-6">Indicador</TableHead>
-                <TableHead>Proyecto</TableHead>
+                <TableHead>Formulario</TableHead>
                 <TableHead>Estándar</TableHead>
                 <TableHead>Categoría</TableHead>
                 <TableHead>Valor</TableHead>
-                <TableHead>Estado</TableHead>
-                <TableHead className="pr-6">Última edición</TableHead>
+                <TableHead className="pr-6">Estado del Form.</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {respuestasFiltradas.map((r) => {
                 const ind = INDICADORES.find((i) => i.id === r.indicadorId);
-                const proy = PROYECTOS.find((p) => p.id === r.proyectoId);
-                const estCfg = ind ? ESTANDAR_CONFIG[ind.estandar] : null;
+                const form = FORMULARIOS.find((f) => f.id === r.formularioId);
+                const estCfg = ind ? ESTANDAR_CONFIG[ind.estandar as keyof typeof ESTANDAR_CONFIG] : null;
                 const catCfg = ind ? CATEGORIA_CONFIG[ind.categoria] : null;
-                const estadoCfg = ESTADO_CONFIG[r.estado];
+                const estadoCfg = form ? ESTADO_FORM_CONFIG[form.estado] : null;
+                
                 return (
                   <TableRow key={r.id} className="border-border/30 hover:bg-secondary/20">
                     <TableCell className="pl-6">
@@ -289,7 +281,7 @@ export default function ReportesPage() {
                       </div>
                     </TableCell>
                     <TableCell className="text-xs text-muted-foreground max-w-[160px] truncate">
-                      {proy?.cliente}
+                      {form?.nombre}
                     </TableCell>
                     <TableCell>
                       {estCfg && (
@@ -315,12 +307,13 @@ export default function ReportesPage() {
                         <span>{String(r.valor)} {ind?.unidad && <span className="text-xs text-muted-foreground">{ind.unidad}</span>}</span>
                       )}
                     </TableCell>
-                    <TableCell>
-                      <span className={`text-xs px-2 py-0.5 rounded-full border ${estadoCfg.color}`}>
-                        {estadoCfg.label}
-                      </span>
+                    <TableCell className="pr-6">
+                      {estadoCfg && (
+                        <span className={`text-xs px-2 py-0.5 rounded-full border ${estadoCfg.color}`}>
+                          {estadoCfg.label}
+                        </span>
+                      )}
                     </TableCell>
-                    <TableCell className="pr-6 text-xs text-muted-foreground">{r.ultimaEdicion}</TableCell>
                   </TableRow>
                 );
               })}

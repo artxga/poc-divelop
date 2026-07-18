@@ -57,7 +57,8 @@ const NAV_ITEMS = [
 const ROL_CONFIG = {
   admin: { label: "Administrador", icon: Shield, color: "text-purple-400" },
   consultor: { label: "Consultor", icon: Users, color: "text-blue-400" },
-  cliente: { label: "Cliente", icon: User, color: "text-emerald-400" },
+  cliente: { label: "Cliente Líder", icon: Shield, color: "text-emerald-400" },
+  usuario_cliente: { label: "Usuario Cliente", icon: User, color: "text-emerald-400" },
 };
 
 export function Sidebar() {

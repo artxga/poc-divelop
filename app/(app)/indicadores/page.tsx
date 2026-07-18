@@ -3,7 +3,6 @@
 import { useState } from "react";
 import {
   INDICADORES,
-  ESTADO_CONFIG,
   CATEGORIA_CONFIG,
   ESTANDAR_CONFIG,
   type Indicador,

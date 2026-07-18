@@ -1,9 +1,11 @@
+"use client";
+
 import Link from "next/link";
-import { PROYECTOS, ESTANDAR_CONFIG } from "@/app/_lib/mock-data";
+import { PROYECTOS, CLIENTES, FORMULARIOS } from "@/app/_lib/mock-data";
+import { useAuth } from "@/app/_lib/auth-context";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Progress } from "@/components/ui/progress";
-import { FolderOpen, ChevronRight, Calendar, User } from "lucide-react";
+import { FolderOpen, ChevronRight, Calendar, User, Briefcase } from "lucide-react";
 
 const ESTADO = {
   activo: { label: "Activo", class: "bg-emerald-500/15 text-emerald-400 border-emerald-500/20" },
@@ -12,55 +14,68 @@ const ESTADO = {
 };
 
 export default function ProyectosPage() {
+  const { user } = useAuth();
+  
+  if (!user) return null;
+
+  // Filtrar proyectos según el rol
+  const proyectosFiltrados = PROYECTOS.filter((p) => {
+    if (user.rol === "admin" || user.rol === "consultor") return true;
+    return p.clienteId === user.clienteId;
+  });
+
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold tracking-tight">Proyectos</h1>
-        <p className="text-sm text-muted-foreground mt-0.5">
-          Selecciona un proyecto para registrar o revisar sus indicadores ESG
-        </p>
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-2xl font-bold tracking-tight">Proyectos</h1>
+          <p className="text-sm text-muted-foreground mt-0.5">
+            Selecciona un proyecto para gestionar sus formularios y respuestas
+          </p>
+        </div>
       </div>
 
-      <div className="grid gap-4">
-        {PROYECTOS.map((p) => {
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        {proyectosFiltrados.map((p) => {
           const estadoCfg = ESTADO[p.estado];
+          const cliente = CLIENTES.find((c) => c.id === p.clienteId);
+          const formsDelProyecto = FORMULARIOS.filter(f => f.proyectoId === p.id);
+          // Si es cliente, solo contar formularios donde está asignado
+          const misForms = (user.rol === "cliente" || user.rol === "usuario_cliente") 
+            ? formsDelProyecto.filter(f => f.asignados.includes(user.email))
+            : formsDelProyecto;
+
+          // Si el cliente no tiene formularios asignados en este proyecto, y no es admin, no renderizamos
+          if ((user.rol === "cliente" || user.rol === "usuario_cliente") && misForms.length === 0) {
+            return null;
+          }
+
           return (
             <Link key={p.id} href={`/proyectos/${p.id}`} className="block group">
-              <Card className="border-border/50 bg-card/60 backdrop-blur-sm hover:bg-card/80 hover:border-emerald-500/30 transition-all hover:shadow-lg hover:shadow-emerald-500/5">
-                <CardContent className="pt-5 pb-5">
-                  <div className="flex items-start gap-4">
+              <Card className="border-border/50 bg-card/60 backdrop-blur-sm hover:bg-card/80 hover:border-emerald-500/30 transition-all hover:shadow-lg hover:shadow-emerald-500/5 h-full">
+                <CardContent className="p-5 flex flex-col h-full">
+                  <div className="flex items-start justify-between mb-4">
                     <div className="w-11 h-11 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center shrink-0 group-hover:bg-emerald-500/20 transition-colors">
                       <FolderOpen className="w-5 h-5 text-emerald-400" />
                     </div>
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2 mb-1">
-                        <h2 className="font-semibold text-sm truncate">{p.nombre}</h2>
-                        <span className={`shrink-0 text-xs px-2 py-0.5 rounded-full border ${estadoCfg.class}`}>
-                          {estadoCfg.label}
-                        </span>
-                      </div>
-                      <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-muted-foreground mb-3">
-                        <span className="flex items-center gap-1"><User className="w-3 h-3" /> {p.cliente}</span>
-                        <span className="flex items-center gap-1"><Calendar className="w-3 h-3" /> {p.fechaInicio} → {p.fechaFin}</span>
-                      </div>
-                      <div className="flex flex-wrap gap-1.5 mb-3">
-                        {p.estandares.map((est) => {
-                          const cfg = ESTANDAR_CONFIG[est];
-                          return (
-                            <span key={est} className={`text-xs px-2 py-0.5 rounded-full border ${cfg.border} ${cfg.bg} ${cfg.color} font-medium`}>
-                              {est}
-                            </span>
-                          );
-                        })}
-                      </div>
-                      <div className="flex items-center gap-3">
-                        <Progress value={p.progreso} className="flex-1 h-1.5 bg-secondary" />
-                        <span className={`text-xs font-semibold shrink-0 ${p.progreso >= 80 ? "text-emerald-400" : p.progreso >= 50 ? "text-amber-400" : "text-red-400"}`}>
-                          {p.progreso}%
-                        </span>
-                      </div>
+                    <span className={`shrink-0 text-xs px-2 py-0.5 rounded-full border ${estadoCfg.class}`}>
+                      {estadoCfg.label}
+                    </span>
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <h2 className="font-semibold text-base mb-1 line-clamp-2">{p.nombre}</h2>
+                    <div className="flex items-center gap-1.5 text-xs text-muted-foreground mb-3">
+                      <Briefcase className="w-3.5 h-3.5" />
+                      <span className="truncate">{cliente?.nombre}</span>
                     </div>
-                    <ChevronRight className="w-4 h-4 text-muted-foreground group-hover:text-emerald-400 transition-colors shrink-0 mt-1" />
+                  </div>
+                  <div className="mt-auto pt-4 border-t border-border/50 flex items-center justify-between text-xs text-muted-foreground">
+                    <span className="flex items-center gap-1">
+                      <Calendar className="w-3.5 h-3.5" /> {p.fechaInicio}
+                    </span>
+                    <span className="font-medium text-emerald-400">
+                      {misForms.length} Formularios
+                    </span>
                   </div>
                 </CardContent>
               </Card>

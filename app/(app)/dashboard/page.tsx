@@ -1,6 +1,6 @@
 "use client";
 
-import { PROYECTOS, RESPUESTAS, DATOS_MENSUALES, DATOS_ESTANDAR, ESTADO_CONFIG } from "@/app/_lib/mock-data";
+import { PROYECTOS, FORMULARIOS, DATOS_MENSUALES, DATOS_ESTANDAR, ESTADO_FORM_CONFIG } from "@/app/_lib/mock-data";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
@@ -28,11 +28,11 @@ import {
 
 // Compute global stats
 const totalProyectos = PROYECTOS.filter((p) => p.estado === "activo").length;
-const aprobados = RESPUESTAS.filter((r) => r.estado === "aprobado").length;
-const pendientes = RESPUESTAS.filter((r) => r.estado === "enviado").length;
-const observados = RESPUESTAS.filter((r) => r.estado === "observado").length;
-const totalRespuestas = RESPUESTAS.length;
-const pctCompletado = totalRespuestas > 0 ? Math.round((aprobados / totalRespuestas) * 100) : 0;
+const aprobados = FORMULARIOS.filter((f) => f.estado === "aprobado").length;
+const pendientes = FORMULARIOS.filter((f) => f.estado === "enviado").length;
+const observados = FORMULARIOS.filter((f) => f.estado === "observado").length;
+const totalFormularios = FORMULARIOS.length;
+const pctCompletado = totalFormularios > 0 ? Math.round((aprobados / totalFormularios) * 100) : 0;
 
 const KPIS = [
   {
@@ -51,7 +51,7 @@ const KPIS = [
     color: "text-emerald-400",
     bg: "bg-emerald-500/10",
     border: "border-emerald-500/20",
-    trend: `${aprobados} de ${totalRespuestas}`,
+    trend: `${aprobados} de ${totalFormularios}`,
   },
   {
     label: "Pendientes de Revisión",
@@ -188,35 +188,36 @@ export default function DashboardPage() {
         </Card>
       </div>
 
-      {/* Projects table */}
+      {/* Forms table */}
       <Card className="border-border/50 bg-card/60 backdrop-blur-sm">
         <CardHeader className="pb-3">
           <div className="flex items-center justify-between">
             <div>
-              <CardTitle className="text-base">Estado de Proyectos</CardTitle>
-              <CardDescription>Progreso de llenado por proyecto activo</CardDescription>
+              <CardTitle className="text-base">Estado de Formularios</CardTitle>
+              <CardDescription>Progreso de llenado por formulario</CardDescription>
             </div>
             <Badge variant="outline" className="text-xs">
-              {PROYECTOS.length} proyectos
+              {FORMULARIOS.length} formularios
             </Badge>
           </div>
         </CardHeader>
         <CardContent>
           <div className="space-y-4">
-            {PROYECTOS.map((proyecto) => {
-              const estadoCfg = PROYECTO_ESTADO[proyecto.estado];
+            {FORMULARIOS.map((form) => {
+              const proyecto = PROYECTOS.find((p) => p.id === form.proyectoId);
+              const estadoCfg = ESTADO_FORM_CONFIG[form.estado];
               return (
-                <div key={proyecto.id} className="flex flex-col sm:flex-row sm:items-center gap-3 p-3 rounded-lg bg-secondary/20 hover:bg-secondary/40 transition-all border border-transparent hover:border-border/50">
+                <div key={form.id} className="flex flex-col sm:flex-row sm:items-center gap-3 p-3 rounded-lg bg-secondary/20 hover:bg-secondary/40 transition-all border border-transparent hover:border-border/50">
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 mb-1">
-                      <p className="font-medium text-sm truncate">{proyecto.nombre}</p>
-                      <span className={`shrink-0 text-xs px-2 py-0.5 rounded-full border ${estadoCfg.class}`}>
+                      <p className="font-medium text-sm truncate">{form.nombre}</p>
+                      <span className={`shrink-0 text-xs px-2 py-0.5 rounded-full border ${estadoCfg.color}`}>
                         {estadoCfg.label}
                       </span>
                     </div>
-                    <p className="text-xs text-muted-foreground">{proyecto.cliente} · {proyecto.consultor}</p>
+                    <p className="text-xs text-muted-foreground">{proyecto?.nombre}</p>
                     <div className="flex flex-wrap gap-1 mt-2">
-                      {proyecto.estandares.map((est) => (
+                      {form.estandares.map((est) => (
                         <span key={est} className="text-xs bg-secondary px-1.5 py-0.5 rounded text-muted-foreground">{est}</span>
                       ))}
                     </div>
@@ -224,12 +225,12 @@ export default function DashboardPage() {
                   <div className="w-full sm:w-48 shrink-0">
                     <div className="flex items-center justify-between mb-1">
                       <span className="text-xs text-muted-foreground">Progreso</span>
-                      <span className={`text-xs font-semibold ${proyecto.progreso >= 80 ? "text-emerald-400" : proyecto.progreso >= 50 ? "text-amber-400" : "text-red-400"}`}>
-                        {proyecto.progreso}%
+                      <span className={`text-xs font-semibold ${form.progreso >= 80 ? "text-emerald-400" : form.progreso >= 50 ? "text-amber-400" : "text-red-400"}`}>
+                        {form.progreso}%
                       </span>
                     </div>
                     <Progress
-                      value={proyecto.progreso}
+                      value={form.progreso}
                       className="h-2 bg-secondary"
                     />
                   </div>

@@ -10,9 +10,10 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Leaf, Eye, EyeOff, AlertCircle } from "lucide-react";
 
 const DEMO_CREDENTIALS = [
-  { email: "admin@divelop.com", password: "admin123", rol: "Administrador" },
-  { email: "consultor@divelop.com", password: "consultor123", rol: "Consultor" },
-  { email: "cliente@divelop.com", password: "cliente123", rol: "Cliente" },
+  { email: "admin@divelop.com", password: "123", rol: "Administrador" },
+  { email: "consultor@divelop.com", password: "123", rol: "Consultor" },
+  { email: "cliente@mineraandina.com", password: "123", rol: "Cliente (Líder)" },
+  { email: "operador@mineraandina.com", password: "123", rol: "Usuario Cliente" },
 ];
 
 export default function LoginPage() {
