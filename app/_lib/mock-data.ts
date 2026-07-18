@@ -50,7 +50,7 @@ export interface FormularioTemplate {
   id: string;
   proyectoId: string;
   nombre: string;
-  estandares: IndicadorEstandar[];
+  indicadores: string[];
 }
 
 export type FormEstado = "borrador" | "enviado" | "observado" | "aprobado";
@@ -112,8 +112,8 @@ export const PROYECTOS: Proyecto[] = [
 ];
 
 export const FORMULARIO_TEMPLATES: FormularioTemplate[] = [
-  { id: "ft1", proyectoId: "p1", nombre: "Métricas Ambientales Sede Norte", estandares: ["GRI", "TCFD"] },
-  { id: "ft2", proyectoId: "p1", nombre: "Indicadores Sociales y de Gobernanza", estandares: ["GRI"] },
+  { id: "ft1", proyectoId: "p1", nombre: "Métricas Ambientales Sede Norte", indicadores: ["i1", "i3", "i12", "i16"] },
+  { id: "ft2", proyectoId: "p1", nombre: "Indicadores Sociales y de Gobernanza", indicadores: ["i6", "i9", "i16"] },
 ];
 
 export const FORMULARIOS_ENVIADOS: FormularioEnviado[] = [

@@ -218,9 +218,9 @@ export default function DashboardPage() {
                     </div>
                     <p className="text-xs text-muted-foreground">{proyecto?.nombre}</p>
                     <div className="flex flex-wrap gap-1 mt-2">
-                      {template?.estandares.map((est) => (
-                        <span key={est} className="text-xs bg-secondary px-1.5 py-0.5 rounded text-muted-foreground">{est}</span>
-                      ))}
+                      <span className="text-xs bg-secondary px-1.5 py-0.5 rounded text-muted-foreground">
+                        {template?.indicadores.length} indicadores
+                      </span>
                     </div>
                   </div>
                   <div className="w-full sm:w-48 shrink-0">

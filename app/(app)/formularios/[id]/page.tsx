@@ -56,7 +56,6 @@ export default function FormularioDetailPage({ params }: PageProps<"/formularios
   const userAsignado = USUARIOS.find(u => u.email === envio.usuarioEmail);
   
   const [activeTab, setActiveTab] = useState<string>("indicadores");
-  const [activeEstandar, setActiveEstandar] = useState<string>(template?.estandares[0] || "");
   
   // Respuestas State
   const [respuestas, setRespuestas] = useState<Record<string, RespuestaIndicador>>(() => {
@@ -212,28 +211,8 @@ export default function FormularioDetailPage({ params }: PageProps<"/formularios
         </TabsList>
 
         <TabsContent value="indicadores" className="flex-1 min-h-0 mt-4 data-[state=active]:flex flex-col gap-4">
-          <div className="flex gap-2 overflow-x-auto pb-2 shrink-0">
-            {template?.estandares.map((est) => {
-              const cfg = ESTANDAR_CONFIG[est as keyof typeof ESTANDAR_CONFIG];
-              return (
-                <button
-                  key={est}
-                  onClick={() => setActiveEstandar(est)}
-                  className={cn(
-                    "px-4 py-2 rounded-lg text-sm font-medium transition-all border",
-                    activeEstandar === est
-                      ? `${cfg.bg} ${cfg.color} ${cfg.border}`
-                      : "bg-card border-border/50 text-muted-foreground hover:bg-secondary/50"
-                  )}
-                >
-                  {est}
-                </button>
-              );
-            })}
-          </div>
-
           <div className="flex-1 overflow-y-auto space-y-3 pr-2 pb-10">
-            {INDICADORES.filter((i) => i.estandar === activeEstandar).map((ind) => {
+            {INDICADORES.filter((i) => template?.indicadores.includes(i.id)).map((ind) => {
               const catCfg = CATEGORIA_CONFIG[ind.categoria];
               return (
                 <Card key={ind.id} className="border-border/50 bg-card/60 backdrop-blur-sm">
@@ -246,6 +225,9 @@ export default function FormularioDetailPage({ params }: PageProps<"/formularios
                             <div className={`w-1.5 h-1.5 rounded-full ${catCfg.dot}`} />
                             {ind.categoria}
                           </div>
+                          <span className="text-xs px-2 py-0.5 rounded-full border border-border/50 text-muted-foreground ml-auto">
+                            {ind.estandar}
+                          </span>
                         </div>
                         <p className="font-medium text-sm">{ind.nombre}</p>
                         <p className="text-xs text-muted-foreground mt-1">{ind.descripcion}</p>
@@ -259,9 +241,9 @@ export default function FormularioDetailPage({ params }: PageProps<"/formularios
                 </Card>
               );
             })}
-            {INDICADORES.filter((i) => i.estandar === activeEstandar).length === 0 && (
-              <p className="text-sm text-muted-foreground p-4 text-center border border-dashed border-border/50 rounded-lg">
-                No hay indicadores configurados para este estándar.
+            {(!template?.indicadores || template.indicadores.length === 0) && (
+              <p className="text-sm text-muted-foreground p-4 text-center border border-dashed border-border/50 rounded-lg bg-card/30">
+                No hay indicadores configurados en este formulario.
               </p>
             )}
           </div>

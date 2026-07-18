@@ -61,8 +61,10 @@ export default function ProyectoDetailPage({ params }: PageProps<"/proyectos/[id
           </p>
         </div>
         {isAdminOrConsultor && (
-          <Button onClick={() => setModalOpen(true)} className="shrink-0 bg-emerald-600 hover:bg-emerald-500 text-white gap-2">
-            <Plus className="w-4 h-4" /> Nuevo Formulario
+          <Button asChild className="shrink-0 bg-emerald-600 hover:bg-emerald-500 text-white gap-2">
+            <Link href={`/proyectos/${id}/formularios/crear`}>
+              <Plus className="w-4 h-4" /> Nuevo Formulario
+            </Link>
           </Button>
         )}
       </div>
@@ -97,14 +99,9 @@ export default function ProyectoDetailPage({ params }: PageProps<"/proyectos/[id
                     <div className="flex-1 min-w-0">
                       <h2 className="font-semibold text-base mb-1.5 truncate">{template.nombre}</h2>
                       <div className="flex flex-wrap gap-1.5 mb-3">
-                        {template.estandares.map((est) => {
-                          const cfg = ESTANDAR_CONFIG[est as keyof typeof ESTANDAR_CONFIG];
-                          return (
-                            <span key={est} className={`text-xs px-2 py-0.5 rounded-full border ${cfg.border} ${cfg.bg} ${cfg.color} font-medium`}>
-                              {est}
-                            </span>
-                          );
-                        })}
+                        <span className="text-xs px-2 py-0.5 rounded-full border border-emerald-500/20 bg-emerald-500/10 text-emerald-400 font-medium">
+                          {template.indicadores.length} indicadores
+                        </span>
                       </div>
                       <p className="text-xs text-muted-foreground flex items-center gap-1.5 mb-4">
                         <Users className="w-3.5 h-3.5" />
@@ -130,53 +127,6 @@ export default function ProyectoDetailPage({ params }: PageProps<"/proyectos/[id
           })
         )}
       </div>
-
-      <Dialog open={modalOpen} onOpenChange={setModalOpen}>
-        <DialogContent className="max-w-md bg-card border-border/50">
-          <DialogHeader>
-            <DialogTitle>Nuevo Formulario</DialogTitle>
-            <DialogDescription>
-              Crea un formulario base y se generará una instancia para cada usuario seleccionado.
-            </DialogDescription>
-          </DialogHeader>
-          <div className="grid gap-4 py-2">
-            <div className="space-y-1.5">
-              <Label>Nombre del Formulario (Plantilla)</Label>
-              <Input placeholder="Ej: Métricas Hídricas..." />
-            </div>
-            <div className="space-y-1.5">
-              <Label>Estándares a incluir</Label>
-              <div className="flex flex-wrap gap-3 mt-2">
-                {["GRI", "SASB", "ODS", "TCFD"].map((est) => (
-                  <label key={est} className="flex items-center gap-2 cursor-pointer">
-                    <Checkbox /> <span className="text-sm">{est}</span>
-                  </label>
-                ))}
-              </div>
-            </div>
-            <div className="space-y-1.5">
-              <Label>Usuarios a Enviar</Label>
-              <div className="space-y-2 mt-2 border border-border/50 rounded-lg p-3 bg-secondary/20 max-h-[150px] overflow-y-auto">
-                {USUARIOS.filter(u => u.clienteId === proyecto.clienteId).map(u => (
-                  <label key={u.id} className="flex items-center gap-2 cursor-pointer p-1 hover:bg-secondary/40 rounded">
-                    <Checkbox /> 
-                    <div className="flex flex-col">
-                      <span className="text-sm">{u.nombre}</span>
-                      <span className="text-xs text-muted-foreground">{u.email}</span>
-                    </div>
-                  </label>
-                ))}
-              </div>
-            </div>
-          </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setModalOpen(false)}>Cancelar</Button>
-            <Button className="bg-emerald-600 hover:bg-emerald-500 text-white" onClick={() => setModalOpen(false)}>
-              Crear y Enviar
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
     </div>
   );
 }
