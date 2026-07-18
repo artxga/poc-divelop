@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { PROYECTOS, CLIENTES, FORMULARIOS } from "@/app/_lib/mock-data";
+import { PROYECTOS, CLIENTES, FORMULARIOS_ENVIADOS } from "@/app/_lib/mock-data";
 import { useAuth } from "@/app/_lib/auth-context";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -39,14 +39,14 @@ export default function ProyectosPage() {
         {proyectosFiltrados.map((p) => {
           const estadoCfg = ESTADO[p.estado];
           const cliente = CLIENTES.find((c) => c.id === p.clienteId);
-          const formsDelProyecto = FORMULARIOS.filter(f => f.proyectoId === p.id);
-          // Si es cliente, solo contar formularios donde está asignado
-          const misForms = (user.rol === "cliente" || user.rol === "usuario_cliente") 
-            ? formsDelProyecto.filter(f => f.asignados.includes(user.email))
-            : formsDelProyecto;
+          
+          const enviosDelProyecto = FORMULARIOS_ENVIADOS.filter(f => f.proyectoId === p.id);
+          const misEnvios = (user.rol === "cliente" || user.rol === "usuario_cliente") 
+            ? enviosDelProyecto.filter(f => f.usuarioEmail === user.email)
+            : enviosDelProyecto;
 
-          // Si el cliente no tiene formularios asignados en este proyecto, y no es admin, no renderizamos
-          if ((user.rol === "cliente" || user.rol === "usuario_cliente") && misForms.length === 0) {
+          // Si el cliente no tiene envíos asignados en este proyecto, y no es admin, no renderizamos
+          if ((user.rol === "cliente" || user.rol === "usuario_cliente") && misEnvios.length === 0) {
             return null;
           }
 
@@ -74,7 +74,7 @@ export default function ProyectosPage() {
                       <Calendar className="w-3.5 h-3.5" /> {p.fechaInicio}
                     </span>
                     <span className="font-medium text-emerald-400">
-                      {misForms.length} Formularios
+                      {misEnvios.length} Formularios
                     </span>
                   </div>
                 </CardContent>

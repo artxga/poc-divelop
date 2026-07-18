@@ -4,7 +4,8 @@ import {
   RESPUESTAS,
   INDICADORES,
   PROYECTOS,
-  FORMULARIOS,
+  FORMULARIOS_ENVIADOS,
+  FORMULARIO_TEMPLATES,
   DATOS_MENSUALES,
   DATOS_CATEGORIA,
   DATOS_ESTANDAR,
@@ -54,17 +55,18 @@ import { useState } from "react";
 function exportCSV() {
   const rows = RESPUESTAS.map((r) => {
     const ind = INDICADORES.find((i) => i.id === r.indicadorId);
-    const form = FORMULARIOS.find((f) => f.id === r.formularioId);
-    const proy = PROYECTOS.find((p) => p.id === form?.proyectoId);
-    
+    const envio = FORMULARIOS_ENVIADOS.find((f) => f.id === r.envioId);
+    const template = FORMULARIO_TEMPLATES.find((t) => t.id === envio?.templateId);
+    const proy = PROYECTOS.find((p) => p.id === envio?.proyectoId);
+
     return [
       proy?.nombre ?? "",
-      form?.nombre ?? "",
+      `${template?.nombre} - ${envio?.usuarioEmail}`,
       ind?.codigo ?? "",
       ind?.nombre ?? "",
       ind?.estandar ?? "",
       ind?.categoria ?? "",
-      form?.estado ?? "",
+      envio?.estado ?? "",
       String(r.valor ?? ""),
       ind?.unidad ?? "",
     ].join(",");
@@ -94,9 +96,9 @@ export default function ReportesPage() {
 
   const respuestasFiltradas = RESPUESTAS.filter((r) => {
     const ind = INDICADORES.find((i) => i.id === r.indicadorId);
-    const form = FORMULARIOS.find((f) => f.id === r.formularioId);
-    
-    const matchProy = filtroProyecto === "todos" || form?.proyectoId === filtroProyecto;
+    const envio = FORMULARIOS_ENVIADOS.find((f) => f.id === r.envioId);
+
+    const matchProy = filtroProyecto === "todos" || envio?.proyectoId === filtroProyecto;
     const matchEst = filtroEstandar === "todos" || ind?.estandar === filtroEstandar;
     return matchProy && matchEst;
   });
@@ -267,11 +269,12 @@ export default function ReportesPage() {
             <TableBody>
               {respuestasFiltradas.map((r) => {
                 const ind = INDICADORES.find((i) => i.id === r.indicadorId);
-                const form = FORMULARIOS.find((f) => f.id === r.formularioId);
+                const envio = FORMULARIOS_ENVIADOS.find((f) => f.id === r.envioId);
+                const template = FORMULARIO_TEMPLATES.find((t) => t.id === envio?.templateId);
                 const estCfg = ind ? ESTANDAR_CONFIG[ind.estandar as keyof typeof ESTANDAR_CONFIG] : null;
                 const catCfg = ind ? CATEGORIA_CONFIG[ind.categoria] : null;
-                const estadoCfg = form ? ESTADO_FORM_CONFIG[form.estado] : null;
-                
+                const estadoCfg = envio ? ESTADO_FORM_CONFIG[envio.estado] : null;
+
                 return (
                   <TableRow key={r.id} className="border-border/30 hover:bg-secondary/20">
                     <TableCell className="pl-6">
@@ -281,7 +284,7 @@ export default function ReportesPage() {
                       </div>
                     </TableCell>
                     <TableCell className="text-xs text-muted-foreground max-w-[160px] truncate">
-                      {form?.nombre}
+                      {template?.nombre} - {envio?.usuarioEmail}
                     </TableCell>
                     <TableCell>
                       {estCfg && (

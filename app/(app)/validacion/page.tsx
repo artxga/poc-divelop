@@ -18,10 +18,11 @@ import {
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import {
-  FORMULARIOS,
+  FORMULARIOS_ENVIADOS,
+  FORMULARIO_TEMPLATES,
   PROYECTOS,
-  ESTADO_FORM_CONFIG,
-  type Formulario,
+  USUARIOS,
+  type FormularioEnviado,
   type FormEstado,
 } from "@/app/_lib/mock-data";
 import {
@@ -31,9 +32,18 @@ import {
   AlertTriangle,
   Clock,
   FileText,
-  Users
+  User,
+  Filter
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Card } from "@/components/ui/card";
 
 const COLUMNAS: { id: FormEstado; label: string; icon: React.ElementType; color: string }[] = [
   { id: "borrador", label: "Borrador", icon: Circle, color: "text-slate-400" },
@@ -43,13 +53,13 @@ const COLUMNAS: { id: FormEstado; label: string; icon: React.ElementType; color:
 ];
 
 interface KanbanCardProps {
-  formulario: Formulario;
+  envio: FormularioEnviado;
   isDragging?: boolean;
 }
 
-function KanbanCard({ formulario, isDragging }: KanbanCardProps) {
+function KanbanCard({ envio, isDragging }: KanbanCardProps) {
   const { attributes, listeners, setNodeRef, transform, transition } = useSortable({
-    id: formulario.id,
+    id: envio.id,
   });
 
   const style = {
@@ -57,7 +67,9 @@ function KanbanCard({ formulario, isDragging }: KanbanCardProps) {
     transition,
   };
 
-  const proyecto = PROYECTOS.find((p) => p.id === formulario.proyectoId);
+  const template = FORMULARIO_TEMPLATES.find(t => t.id === envio.templateId);
+  const proyecto = PROYECTOS.find((p) => p.id === envio.proyectoId);
+  const userAsignado = USUARIOS.find(u => u.email === envio.usuarioEmail);
 
   return (
     <div
@@ -80,24 +92,24 @@ function KanbanCard({ formulario, isDragging }: KanbanCardProps) {
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-1.5 mb-1 text-emerald-400">
             <FileText className="w-3.5 h-3.5 shrink-0" />
-            <span className="font-medium text-xs truncate">{formulario.nombre}</span>
+            <span className="font-medium text-xs truncate">{template?.nombre}</span>
           </div>
           
           <p className="text-xs text-muted-foreground truncate mb-2">{proyecto?.nombre}</p>
 
           <div className="flex flex-col gap-1.5 mt-2 text-xs">
             <div className="flex items-center gap-1 text-muted-foreground">
-              <Users className="w-3 h-3" />
-              <span className="truncate">{formulario.asignados.join(", ")}</span>
+              <User className="w-3 h-3" />
+              <span className="truncate">{userAsignado?.nombre || envio.usuarioEmail}</span>
             </div>
             <div className="flex items-center gap-2">
               <div className="flex-1 h-1.5 bg-secondary rounded-full overflow-hidden">
-                <div 
-                  className={cn("h-full", formulario.progreso >= 80 ? "bg-emerald-500" : formulario.progreso >= 50 ? "bg-amber-500" : "bg-red-500")} 
-                  style={{ width: `${formulario.progreso}%` }} 
+                <div
+                  className={cn("h-full", envio.progreso >= 80 ? "bg-emerald-500" : envio.progreso >= 50 ? "bg-amber-500" : "bg-red-500")}
+                  style={{ width: `${envio.progreso}%` }}
                 />
               </div>
-              <span className="text-[10px] font-medium">{formulario.progreso}%</span>
+              <span className="text-[10px] font-medium">{envio.progreso}%</span>
             </div>
           </div>
         </div>
@@ -107,15 +119,25 @@ function KanbanCard({ formulario, isDragging }: KanbanCardProps) {
 }
 
 export default function ValidacionPage() {
-  const [formularios, setFormularios] = useState<Formulario[]>(FORMULARIOS);
+  const [envios, setEnvios] = useState<FormularioEnviado[]>(FORMULARIOS_ENVIADOS);
   const [activeId, setActiveId] = useState<string | null>(null);
+  
+  // Filtros
+  const [filtroProyecto, setFiltroProyecto] = useState<string>("todos");
+  const [filtroTemplate, setFiltroTemplate] = useState<string>("todos");
 
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 5 } })
   );
 
+  const enviosFiltrados = envios.filter((e) => {
+    if (filtroProyecto !== "todos" && e.proyectoId !== filtroProyecto) return false;
+    if (filtroTemplate !== "todos" && e.templateId !== filtroTemplate) return false;
+    return true;
+  });
+
   const byEstado = (estado: FormEstado) =>
-    formularios.filter((f) => f.estado === estado);
+    enviosFiltrados.filter((e) => e.estado === estado);
 
   function handleDragStart(event: DragStartEvent) {
     setActiveId(event.active.id as string);
@@ -125,34 +147,68 @@ export default function ValidacionPage() {
     const { active, over } = event;
     if (!over) { setActiveId(null); return; }
 
-    const activeForm = formularios.find((f) => f.id === active.id);
-    if (!activeForm) { setActiveId(null); return; }
+    const activeEnvio = envios.find((e) => e.id === active.id);
+    if (!activeEnvio) { setActiveId(null); return; }
 
     const targetColId = COLUMNAS.find((c) => c.id === over.id)?.id;
     if (targetColId) {
-      setFormularios((prev) =>
-        prev.map((f) => f.id === active.id ? { ...f, estado: targetColId } : f)
+      setEnvios((prev) =>
+        prev.map((e) => e.id === active.id ? { ...e, estado: targetColId } : e)
       );
     } else {
-      const targetForm = formularios.find((f) => f.id === over.id);
-      if (targetForm && targetForm.estado !== activeForm.estado) {
-        setFormularios((prev) =>
-          prev.map((f) => f.id === active.id ? { ...f, estado: targetForm.estado } : f)
+      const targetEnvio = envios.find((e) => e.id === over.id);
+      if (targetEnvio && targetEnvio.estado !== activeEnvio.estado) {
+        setEnvios((prev) =>
+          prev.map((e) => e.id === active.id ? { ...e, estado: targetEnvio.estado } : e)
         );
       }
     }
     setActiveId(null);
   }
 
-  const activeForm = formularios.find((f) => f.id === activeId);
+  const activeEnvio = envios.find((e) => e.id === activeId);
+
+  // Derivar templates disponibles según proyecto seleccionado
+  const templatesDisponibles = FORMULARIO_TEMPLATES.filter(
+    (t) => filtroProyecto === "todos" || t.proyectoId === filtroProyecto
+  );
 
   return (
     <div className="space-y-5 h-full flex flex-col">
-      <div>
-        <h1 className="text-2xl font-bold tracking-tight">Flujo de Validación</h1>
-        <p className="text-sm text-muted-foreground mt-0.5">
-          Arrastra los formularios completos entre columnas para cambiar su estado
-        </p>
+      <div className="flex flex-col md:flex-row md:items-start justify-between gap-4">
+        <div>
+          <h1 className="text-2xl font-bold tracking-tight">Flujo de Validación</h1>
+          <p className="text-sm text-muted-foreground mt-0.5">
+            Filtra por proyecto y formulario para validar las respuestas de cada usuario.
+          </p>
+        </div>
+        
+        <Card className="flex items-center gap-3 p-2 bg-card/60 backdrop-blur-sm border-border/50 shrink-0">
+          <Filter className="w-4 h-4 ml-2 text-muted-foreground" />
+          <Select value={filtroProyecto} onValueChange={(val) => { setFiltroProyecto(val); setFiltroTemplate("todos"); }}>
+            <SelectTrigger className="w-[200px] h-8 text-xs border-transparent bg-secondary/50">
+              <SelectValue placeholder="Proyecto" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="todos">Todos los proyectos</SelectItem>
+              {PROYECTOS.map((p) => (
+                <SelectItem key={p.id} value={p.id}>{p.nombre}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          
+          <Select value={filtroTemplate} onValueChange={setFiltroTemplate}>
+            <SelectTrigger className="w-[200px] h-8 text-xs border-transparent bg-secondary/50">
+              <SelectValue placeholder="Formulario (Plantilla)" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="todos">Todos los formularios</SelectItem>
+              {templatesDisponibles.map((t) => (
+                <SelectItem key={t.id} value={t.id}>{t.nombre}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </Card>
       </div>
 
       <DndContext
@@ -187,8 +243,8 @@ export default function ValidacionPage() {
                     items={items.map((f) => f.id)}
                     strategy={verticalListSortingStrategy}
                   >
-                    {items.map((form) => (
-                      <KanbanCard key={form.id} formulario={form} />
+                    {items.map((envio) => (
+                      <KanbanCard key={envio.id} envio={envio} />
                     ))}
                   </SortableContext>
 
@@ -204,9 +260,9 @@ export default function ValidacionPage() {
         </div>
 
         <DragOverlay>
-          {activeForm && (
+          {activeEnvio && (
             <div className="rotate-2 scale-105 shadow-2xl shadow-black/40">
-              <KanbanCard formulario={activeForm} isDragging />
+              <KanbanCard envio={activeEnvio} isDragging />
             </div>
           )}
         </DragOverlay>

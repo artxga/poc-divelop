@@ -4,7 +4,8 @@ import { use, useState } from "react";
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import {
-  FORMULARIOS,
+  FORMULARIOS_ENVIADOS,
+  FORMULARIO_TEMPLATES,
   PROYECTOS,
   INDICADORES,
   RESPUESTAS,
@@ -13,6 +14,7 @@ import {
   ESTANDAR_CONFIG,
   CATEGORIA_CONFIG,
   ESTADO_FORM_CONFIG,
+  USUARIOS,
   type RespuestaIndicador,
   type Indicador,
 } from "@/app/_lib/mock-data";
@@ -35,9 +37,9 @@ import {
   Send,
   MessageSquare,
   Paperclip,
-  Clock,
   History,
   CheckCircle2,
+  User
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -45,35 +47,37 @@ export default function FormularioDetailPage({ params }: PageProps<"/formularios
   const { id } = use(params);
   const { user } = useAuth();
   
-  const form = FORMULARIOS.find((f) => f.id === id);
-  if (!form) notFound();
+  const envio = FORMULARIOS_ENVIADOS.find((f) => f.id === id);
+  if (!envio) notFound();
   if (!user) return null;
 
-  const proyecto = PROYECTOS.find((p) => p.id === form.proyectoId);
+  const template = FORMULARIO_TEMPLATES.find(t => t.id === envio.templateId);
+  const proyecto = PROYECTOS.find((p) => p.id === envio.proyectoId);
+  const userAsignado = USUARIOS.find(u => u.email === envio.usuarioEmail);
   
   const [activeTab, setActiveTab] = useState<string>("indicadores");
-  const [activeEstandar, setActiveEstandar] = useState<string>(form.estandares[0]);
+  const [activeEstandar, setActiveEstandar] = useState<string>(template?.estandares[0] || "");
   
   // Respuestas State
   const [respuestas, setRespuestas] = useState<Record<string, RespuestaIndicador>>(() => {
     const map: Record<string, RespuestaIndicador> = {};
-    RESPUESTAS.filter((r) => r.formularioId === id).forEach((r) => { map[r.indicadorId] = r; });
+    RESPUESTAS.filter((r) => r.envioId === id).forEach((r) => { map[r.indicadorId] = r; });
     return map;
   });
 
   // Trazabilidad State
-  const [comentarios, setComentarios] = useState(COMENTARIOS.filter((c) => c.formularioId === id));
-  const [historial] = useState(HISTORIAL.filter((h) => h.formularioId === id));
+  const [comentarios, setComentarios] = useState(COMENTARIOS.filter((c) => c.envioId === id));
+  const [historial] = useState(HISTORIAL.filter((h) => h.envioId === id));
   const [comentarioInput, setComentarioInput] = useState("");
 
-  const estadoCfg = ESTADO_FORM_CONFIG[form.estado];
-  const disabled = form.estado === "aprobado" || form.estado === "enviado";
+  const estadoCfg = ESTADO_FORM_CONFIG[envio.estado];
+  const disabled = envio.estado === "aprobado" || envio.estado === "enviado";
 
   function updateValor(indicadorId: string, valor: string | number | boolean) {
     setRespuestas((prev) => ({
       ...prev,
       [indicadorId]: {
-        ...(prev[indicadorId] ?? { id: `new-${indicadorId}`, formularioId: id, indicadorId }),
+        ...(prev[indicadorId] ?? { id: `new-${indicadorId}`, envioId: id, indicadorId }),
         valor,
       },
     }));
@@ -85,7 +89,7 @@ export default function FormularioDetailPage({ params }: PageProps<"/formularios
       ...prev,
       {
         id: `c-${Date.now()}`,
-        formularioId: id,
+        envioId: id,
         autor: user!.nombre,
         rol: user!.rol,
         texto: comentarioInput,
@@ -168,19 +172,19 @@ export default function FormularioDetailPage({ params }: PageProps<"/formularios
     <div className="space-y-5 h-full flex flex-col">
       {/* Breadcrumb */}
       <div className="flex items-center gap-2 shrink-0">
-        <Link href={`/proyectos/${form.proyectoId}`} className="flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground transition-colors">
+        <Link href={`/proyectos/${envio.proyectoId}`} className="flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground transition-colors">
           <ChevronLeft className="w-3.5 h-3.5" /> {proyecto?.nombre}
         </Link>
         <span className="text-muted-foreground">/</span>
-        <span className="text-sm font-medium truncate">{form.nombre}</span>
+        <span className="text-sm font-medium truncate">{template?.nombre}</span>
       </div>
 
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center gap-4 justify-between shrink-0">
         <div>
-          <h1 className="text-xl font-bold">{form.nombre}</h1>
-          <p className="text-sm text-muted-foreground mt-0.5">
-            Asignado a: {form.asignados.join(", ")}
+          <h1 className="text-xl font-bold">{template?.nombre}</h1>
+          <p className="text-sm text-muted-foreground mt-0.5 flex items-center gap-1.5">
+            <User className="w-4 h-4" /> Asignado a: <span className="font-medium text-foreground">{userAsignado?.nombre || envio.usuarioEmail}</span>
           </p>
         </div>
         <div className="flex items-center gap-3">
@@ -209,7 +213,7 @@ export default function FormularioDetailPage({ params }: PageProps<"/formularios
 
         <TabsContent value="indicadores" className="flex-1 min-h-0 mt-4 data-[state=active]:flex flex-col gap-4">
           <div className="flex gap-2 overflow-x-auto pb-2 shrink-0">
-            {form.estandares.map((est) => {
+            {template?.estandares.map((est) => {
               const cfg = ESTANDAR_CONFIG[est as keyof typeof ESTANDAR_CONFIG];
               return (
                 <button

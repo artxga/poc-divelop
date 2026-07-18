@@ -46,28 +46,34 @@ export interface Indicador {
   opciones?: string[];
 }
 
-export type FormEstado = "borrador" | "enviado" | "observado" | "aprobado";
-
-export interface Formulario {
+export interface FormularioTemplate {
   id: string;
   proyectoId: string;
   nombre: string;
   estandares: IndicadorEstandar[];
-  asignados: string[]; // emails de los usuarios que deben llenarlo
+}
+
+export type FormEstado = "borrador" | "enviado" | "observado" | "aprobado";
+
+export interface FormularioEnviado {
+  id: string;
+  templateId: string;
+  proyectoId: string;
+  usuarioEmail: string;
   estado: FormEstado;
-  progreso: number; // porcentaje calculado
+  progreso: number;
 }
 
 export interface RespuestaIndicador {
   id: string;
-  formularioId: string;
+  envioId: string;
   indicadorId: string;
   valor: string | number | boolean | null;
 }
 
 export interface Comentario {
   id: string;
-  formularioId: string;
+  envioId: string;
   autor: string;
   rol: UserRole;
   texto: string;
@@ -78,7 +84,7 @@ export interface Comentario {
 
 export interface Historial {
   id: string;
-  formularioId: string;
+  envioId: string;
   evento: string;
   autor: string;
   fecha: string;
@@ -105,47 +111,45 @@ export const PROYECTOS: Proyecto[] = [
   { id: "p2", clienteId: "c2", nombre: "Diagnóstico ODS", estado: "activo", fechaInicio: "2025-02-01", fechaFin: "2025-07-31" },
 ];
 
-export const FORMULARIOS: Formulario[] = [
-  { id: "f1", proyectoId: "p1", nombre: "Métricas Ambientales Sede Norte", estandares: ["GRI", "TCFD"], asignados: ["operador@mineraandina.com"], estado: "aprobado", progreso: 100 },
-  { id: "f2", proyectoId: "p1", nombre: "Indicadores Sociales y de Gobernanza", estandares: ["GRI"], asignados: ["cliente@mineraandina.com"], estado: "observado", progreso: 75 },
-  { id: "f3", proyectoId: "p2", nombre: "Formulario Base ODS", estandares: ["ODS"], asignados: ["gerencia@grupotextil.com"], estado: "enviado", progreso: 100 },
+export const FORMULARIO_TEMPLATES: FormularioTemplate[] = [
+  { id: "ft1", proyectoId: "p1", nombre: "Métricas Ambientales Sede Norte", estandares: ["GRI", "TCFD"] },
+  { id: "ft2", proyectoId: "p1", nombre: "Indicadores Sociales y de Gobernanza", estandares: ["GRI"] },
+];
+
+export const FORMULARIOS_ENVIADOS: FormularioEnviado[] = [
+  { id: "fe1", templateId: "ft1", proyectoId: "p1", usuarioEmail: "operador@mineraandina.com", estado: "aprobado", progreso: 100 },
+  { id: "fe2", templateId: "ft1", proyectoId: "p1", usuarioEmail: "cliente@mineraandina.com", estado: "enviado", progreso: 100 },
+  { id: "fe3", templateId: "ft2", proyectoId: "p1", usuarioEmail: "cliente@mineraandina.com", estado: "observado", progreso: 75 },
 ];
 
 export const INDICADORES: Indicador[] = [
-  // GRI - Ambiental
   { id: "i1", codigo: "GRI 302-1", nombre: "Consumo de energía dentro de la organización", descripcion: "Energía consumida internamente.", estandar: "GRI", categoria: "Ambiental", tipoDato: "numero", unidad: "GJ" },
   { id: "i3", codigo: "GRI 305-1", nombre: "Emisiones directas de GEI (Alcance 1)", descripcion: "Emisiones directas de gases de efecto invernadero.", estandar: "GRI", categoria: "Ambiental", tipoDato: "numero", unidad: "tCO₂e" },
-  // GRI - Social
   { id: "i6", codigo: "GRI 401-1", nombre: "Nuevas contrataciones y rotación", descripcion: "Número de contrataciones.", estandar: "GRI", categoria: "Social", tipoDato: "numero", unidad: "personas" },
-  // GRI - Gobernanza
   { id: "i9", codigo: "GRI 205-1", nombre: "Operaciones evaluadas por riesgos de corrupción", descripcion: "Porcentaje de operaciones evaluadas.", estandar: "GRI", categoria: "Gobernanza", tipoDato: "porcentaje", unidad: "%" },
-  // TCFD
   { id: "i16", codigo: "TCFD-R1", nombre: "Supervisión del Consejo sobre riesgos climáticos", descripcion: "¿El Consejo supervisa formalmente los riesgos?", estandar: "TCFD", categoria: "Gobernanza", tipoDato: "booleano" },
-  // ODS
   { id: "i12", codigo: "ODS 7.2", nombre: "Participación de energías renovables", descripcion: "Porcentaje de energía renovable.", estandar: "ODS", categoria: "Ambiental", tipoDato: "porcentaje", unidad: "%" },
 ];
 
 export const RESPUESTAS: RespuestaIndicador[] = [
-  // f1 respuestas
-  { id: "r1", formularioId: "f1", indicadorId: "i1", valor: 45230 },
-  { id: "r2", formularioId: "f1", indicadorId: "i3", valor: 12450 },
-  { id: "r3", formularioId: "f1", indicadorId: "i16", valor: true },
+  { id: "r1", envioId: "fe1", indicadorId: "i1", valor: 45230 },
+  { id: "r2", envioId: "fe1", indicadorId: "i3", valor: 12450 },
+  { id: "r3", envioId: "fe1", indicadorId: "i16", valor: true },
   
-  // f2 respuestas
-  { id: "r4", formularioId: "f2", indicadorId: "i6", valor: 145 },
-  { id: "r5", formularioId: "f2", indicadorId: "i9", valor: null }, // no llenado aún
+  { id: "r4", envioId: "fe3", indicadorId: "i6", valor: 145 },
+  { id: "r5", envioId: "fe3", indicadorId: "i9", valor: null },
 ];
 
 export const COMENTARIOS: Comentario[] = [
-  { id: "c1", formularioId: "f1", autor: "Juan Pérez", rol: "usuario_cliente", texto: "He subido la evidencia del consumo energético del Q1 y Q2.", fecha: "2025-03-10", isEvidencia: true, fileName: "recibos_energia_2025.pdf" },
-  { id: "c2", formularioId: "f1", autor: "Sofía Quispe", rol: "consultor", texto: "Revisado, la documentación está conforme.", fecha: "2025-03-12" },
-  { id: "c3", formularioId: "f2", autor: "Sofía Quispe", rol: "consultor", texto: "Falta completar la sección de Gobernanza.", fecha: "2025-03-15" },
+  { id: "c1", envioId: "fe1", autor: "Juan Pérez", rol: "usuario_cliente", texto: "He subido la evidencia del consumo energético.", fecha: "2025-03-10", isEvidencia: true, fileName: "recibos_energia.pdf" },
+  { id: "c2", envioId: "fe1", autor: "Sofía Quispe", rol: "consultor", texto: "Revisado, conforme.", fecha: "2025-03-12" },
+  { id: "c3", envioId: "fe3", autor: "Sofía Quispe", rol: "consultor", texto: "Falta completar sección de Gobernanza.", fecha: "2025-03-15" },
 ];
 
 export const HISTORIAL: Historial[] = [
-  { id: "h1", formularioId: "f1", evento: "Formulario creado y asignado", autor: "Sofía Quispe", fecha: "2025-02-01 10:00" },
-  { id: "h2", formularioId: "f1", evento: "Cambiado a estado Enviado", autor: "Juan Pérez", fecha: "2025-03-10 15:30" },
-  { id: "h3", formularioId: "f1", evento: "Cambiado a estado Aprobado", autor: "Sofía Quispe", fecha: "2025-03-12 09:15" },
+  { id: "h1", envioId: "fe1", evento: "Formulario asignado a Juan Pérez", autor: "Sofía Quispe", fecha: "2025-02-01 10:00" },
+  { id: "h2", envioId: "fe1", evento: "Cambiado a estado Enviado", autor: "Juan Pérez", fecha: "2025-03-10 15:30" },
+  { id: "h3", envioId: "fe1", evento: "Cambiado a estado Aprobado", autor: "Sofía Quispe", fecha: "2025-03-12 09:15" },
 ];
 
 // ============================================================

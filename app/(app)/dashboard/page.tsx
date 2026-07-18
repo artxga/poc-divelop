@@ -1,6 +1,6 @@
 "use client";
 
-import { PROYECTOS, FORMULARIOS, DATOS_MENSUALES, DATOS_ESTANDAR, ESTADO_FORM_CONFIG } from "@/app/_lib/mock-data";
+import { PROYECTOS, FORMULARIOS_ENVIADOS, FORMULARIO_TEMPLATES, DATOS_MENSUALES, DATOS_ESTANDAR, ESTADO_FORM_CONFIG } from "@/app/_lib/mock-data";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
@@ -28,10 +28,10 @@ import {
 
 // Compute global stats
 const totalProyectos = PROYECTOS.filter((p) => p.estado === "activo").length;
-const aprobados = FORMULARIOS.filter((f) => f.estado === "aprobado").length;
-const pendientes = FORMULARIOS.filter((f) => f.estado === "enviado").length;
-const observados = FORMULARIOS.filter((f) => f.estado === "observado").length;
-const totalFormularios = FORMULARIOS.length;
+const aprobados = FORMULARIOS_ENVIADOS.filter((f) => f.estado === "aprobado").length;
+const pendientes = FORMULARIOS_ENVIADOS.filter((f) => f.estado === "enviado").length;
+const observados = FORMULARIOS_ENVIADOS.filter((f) => f.estado === "observado").length;
+const totalFormularios = FORMULARIOS_ENVIADOS.length;
 const pctCompletado = totalFormularios > 0 ? Math.round((aprobados / totalFormularios) * 100) : 0;
 
 const KPIS = [
@@ -194,30 +194,31 @@ export default function DashboardPage() {
           <div className="flex items-center justify-between">
             <div>
               <CardTitle className="text-base">Estado de Formularios</CardTitle>
-              <CardDescription>Progreso de llenado por formulario</CardDescription>
+              <CardDescription>Progreso de llenado por formulario enviado</CardDescription>
             </div>
             <Badge variant="outline" className="text-xs">
-              {FORMULARIOS.length} formularios
+              {FORMULARIOS_ENVIADOS.length} formularios
             </Badge>
           </div>
         </CardHeader>
         <CardContent>
           <div className="space-y-4">
-            {FORMULARIOS.map((form) => {
+            {FORMULARIOS_ENVIADOS.map((form) => {
+              const template = FORMULARIO_TEMPLATES.find((t) => t.id === form.templateId);
               const proyecto = PROYECTOS.find((p) => p.id === form.proyectoId);
               const estadoCfg = ESTADO_FORM_CONFIG[form.estado];
               return (
                 <div key={form.id} className="flex flex-col sm:flex-row sm:items-center gap-3 p-3 rounded-lg bg-secondary/20 hover:bg-secondary/40 transition-all border border-transparent hover:border-border/50">
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 mb-1">
-                      <p className="font-medium text-sm truncate">{form.nombre}</p>
+                      <p className="font-medium text-sm truncate">{template?.nombre} - {form.usuarioEmail}</p>
                       <span className={`shrink-0 text-xs px-2 py-0.5 rounded-full border ${estadoCfg.color}`}>
                         {estadoCfg.label}
                       </span>
                     </div>
                     <p className="text-xs text-muted-foreground">{proyecto?.nombre}</p>
                     <div className="flex flex-wrap gap-1 mt-2">
-                      {form.estandares.map((est) => (
+                      {template?.estandares.map((est) => (
                         <span key={est} className="text-xs bg-secondary px-1.5 py-0.5 rounded text-muted-foreground">{est}</span>
                       ))}
                     </div>
