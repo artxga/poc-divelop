@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import type { Indicator, IndicatorStandard, IndicatorCategory, IndicatorDataType } from "@/app/_lib/mock-data";
+import type { Indicator, IndicatorStandard, IndicatorCategory, IndicatorDataType } from "@/features/indicators/model/types";
 
 const STANDARDS: IndicatorStandard[] = ["GRI", "SASB", "ODS", "TCFD", "Manual"];
 const CATEGORIES: IndicatorCategory[] = ["Ambiental", "Social", "Gobernanza"];

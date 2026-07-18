@@ -2,9 +2,8 @@
 
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { useAuth } from "@/app/_lib/auth-context";
-import { Sidebar } from "@/app/_components/sidebar";
-import { TopBar } from "@/app/_components/topbar";
+import { useAuth } from "@/features/auth/api/auth-context";
+import { Sidebar, TopBar } from "@/features/shared";
 import { Leaf } from "lucide-react";
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {

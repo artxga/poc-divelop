@@ -1,94 +1,14 @@
-// ============================================================
-// TYPES
-// ============================================================
-
-export type UserRole = "admin" | "consultor" | "cliente" | "usuario_cliente";
-
-export interface User {
-  id: string;
-  name: string;
-  email: string;
-  password: string;
-  role: UserRole;
-  avatar: string;
-  clientId?: string; 
-}
-
-export interface Client {
-  id: string;
-  name: string;
-}
-
-export type ProjectStatus = "activo" | "pausado" | "completado";
-
-export interface Project {
-  id: string;
-  clientId: string;
-  name: string;
-  status: ProjectStatus;
-  startDate: string;
-  endDate: string;
-}
-
-export type IndicatorStandard = "GRI" | "SASB" | "ODS" | "TCFD" | "Manual";
-export type IndicatorCategory = "Ambiental" | "Social" | "Gobernanza";
-export type IndicatorDataType = "numero" | "texto" | "porcentaje" | "booleano" | "seleccion";
-
-export interface Indicator {
-  id: string;
-  code: string;
-  name: string;
-  description: string;
-  standard: IndicatorStandard;
-  category: IndicatorCategory;
-  dataType: IndicatorDataType;
-  unit?: string;
-  options?: string[];
-}
-
-export interface FormTemplate {
-  id: string;
-  projectId: string;
-  name: string;
-  indicators: string[];
-}
-
-export type FormStatus = "borrador" | "enviado" | "observado" | "aprobado";
-
-export interface FormSubmission {
-  id: string;
-  templateId: string;
-  projectId: string;
-  userEmail: string;
-  status: FormStatus;
-  progress: number;
-}
-
-export interface IndicatorResponse {
-  id: string;
-  submissionId: string;
-  indicatorId: string;
-  value: string | number | boolean | null;
-}
-
-export interface Comment {
-  id: string;
-  submissionId: string;
-  author: string;
-  role: UserRole;
-  text: string;
-  date: string;
-  isEvidence?: boolean;
-  fileName?: string;
-}
-
-export interface HistoryEvent {
-  id: string;
-  submissionId: string;
-  event: string;
-  author: string;
-  date: string;
-}
+import type { User } from "@/features/auth/model/types";
+import type { Client } from "@/features/clients/model/types";
+import type { Project } from "@/features/projects/model/types";
+import type { Indicator } from "@/features/indicators/model/types";
+import type { 
+  FormTemplate, 
+  FormSubmission, 
+  IndicatorResponse, 
+  Comment, 
+  HistoryEvent 
+} from "@/features/forms/model/types";
 
 // ============================================================
 // MOCKS
