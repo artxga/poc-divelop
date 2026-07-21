@@ -17,15 +17,15 @@ export function ProjectDetailPage({ params }: { params: Promise<{ id: string }> 
   if (!project) notFound();
   if (!user) return null;
 
-  const isAdminOrConsultor = user.role === "admin" || user.role === "consultor";
+  const isLeader = user.role === "admin" || user.role === "consultor" || user.role === "cliente";
   
   // Encontrar qué templates tienen envíos para el proyecto actual
   const projectSubmissions = FORM_SUBMISSIONS.filter(f => f.projectId === id);
   const projectTemplates = FORM_TEMPLATES.filter(t => t.projectId === id);
 
   const filteredTemplates = projectTemplates.filter((template) => {
-    if (isAdminOrConsultor) return true;
-    // Si es cliente, solo ve el template si tiene al menos un envío asignado a su correo en este template
+    if (isLeader) return true;
+    // Si es usuario_cliente, solo ve el template si tiene al menos un envío asignado a su correo en este template
     return projectSubmissions.some(e => e.templateId === template.id && e.userEmail === user.email);
   });
 
@@ -46,13 +46,13 @@ export function ProjectDetailPage({ params }: { params: Promise<{ id: string }> 
             Selecciona un formulario para ver los usuarios asignados
           </p>
         </div>
-        {isAdminOrConsultor && (
+        {user.role === "admin" || user.role === "consultor" ? (
           <Button asChild className="shrink-0 bg-emerald-600 hover:bg-emerald-500 text-white gap-2">
             <Link href={`/projects/${id}/forms/create`}>
               <Plus className="w-4 h-4" /> Nuevo Formulario
             </Link>
           </Button>
-        )}
+        ) : null}
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
@@ -70,7 +70,7 @@ export function ProjectDetailPage({ params }: { params: Promise<{ id: string }> 
                 projectId={project.id} 
                 submissions={templateSubmissions} 
                 user={user} 
-                isAdminOrConsultor={isAdminOrConsultor} 
+                isAdminOrConsultor={isLeader} 
               />
             );
           })

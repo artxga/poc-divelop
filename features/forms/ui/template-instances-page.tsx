@@ -40,13 +40,13 @@ export function TemplateInstancesPage({ params }: { params: Promise<{ id: string
   if (!project || !template) notFound();
   if (!user) return null;
 
-  const isAdminOrConsultor = user.role === "admin" || user.role === "consultor";
+  const isLeader = user.role === "admin" || user.role === "consultor" || user.role === "cliente";
   
   // Envíos específicos para este template y proyecto
   const submissions = FORM_SUBMISSIONS.filter((f) => {
     if (f.projectId !== id || f.templateId !== templateId) return false;
-    if (isAdminOrConsultor) return true;
-    return f.userEmail === user.email; // Clientes solo ven los suyos
+    if (isLeader) return true;
+    return f.userEmail === user.email; // Usuario Cliente solo ve los suyos
   });
 
   // KPI Calculations
@@ -92,9 +92,9 @@ export function TemplateInstancesPage({ params }: { params: Promise<{ id: string
         </div>
       </div>
 
-      <Tabs defaultValue={isAdminOrConsultor ? "dashboard" : "instances"} className="w-full">
+      <Tabs defaultValue={isLeader ? "dashboard" : "instances"} className="w-full">
         <TabsList className="mb-4">
-          {isAdminOrConsultor && (
+          {isLeader && (
             <TabsTrigger value="dashboard" className="gap-2">
               <LayoutDashboard className="w-4 h-4" />
               Dashboard
@@ -106,7 +106,7 @@ export function TemplateInstancesPage({ params }: { params: Promise<{ id: string
           </TabsTrigger>
         </TabsList>
 
-        {isAdminOrConsultor && (
+        {isLeader && (
           <TabsContent value="dashboard" className="space-y-4">
             {/* KPIs */}
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">

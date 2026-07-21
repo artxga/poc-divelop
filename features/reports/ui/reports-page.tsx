@@ -52,6 +52,8 @@ import {
 } from "recharts";
 import { BarChart3, TrendingUp, PieChart as PieIcon, Activity, FileDown } from "lucide-react";
 
+import { useAuth } from "@/features/auth/api/auth-context";
+
 const RADAR_DATA = [
   { subject: "Ambiental", A: 78, B: 55 },
   { subject: "Social", A: 62, B: 48 },
@@ -61,6 +63,7 @@ const RADAR_DATA = [
 ];
 
 export function ReportsPage() {
+  const { user } = useAuth();
   const [projectFilter, setProjectFilter] = useState("todos");
   const [standardFilter, setStandardFilter] = useState("todos");
 
@@ -94,9 +97,20 @@ export function ReportsPage() {
     URL.revokeObjectURL(url);
   }
 
+  if (!user) return null;
+
+  const filteredProjects = PROJECTS.filter((p) => {
+    if (user.role === "admin" || user.role === "consultor") return true;
+    return p.clientId === user.clientId;
+  });
+
   const filteredResponses = RESPONSES.filter((r) => {
     const ind = INDICATORS.find((i) => i.id === r.indicatorId);
     const submission = FORM_SUBMISSIONS.find((f) => f.id === r.submissionId);
+    const proy = filteredProjects.find(p => p.id === submission?.projectId);
+
+    // Si el proyecto del submission no está en los proyectos permitidos del usuario, ocultar
+    if (!proy) return false;
 
     const matchProy = projectFilter === "todos" || submission?.projectId === projectFilter;
     const matchEst = standardFilter === "todos" || ind?.standard === standardFilter;
@@ -119,7 +133,7 @@ export function ReportsPage() {
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="todos">Todos los Proyectos</SelectItem>
-              {PROJECTS.map((p) => (
+              {filteredProjects.map((p) => (
                 <SelectItem key={p.id} value={p.id}>{p.name}</SelectItem>
               ))}
             </SelectContent>

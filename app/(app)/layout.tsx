@@ -16,11 +16,16 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
     if (!isLoading && !user) {
       router.replace("/login");
     } else if (user) {
-      const isClient = user.role === "cliente" || user.role === "usuario_cliente";
-      const isMyFormsPath = pathname.startsWith("/my-forms") || pathname.startsWith("/forms/");
+      const isClientLeader = user.role === "cliente";
+      const isClientUser = user.role === "usuario_cliente";
       
-      if (isClient && !isMyFormsPath) {
+      const isMyFormsPath = pathname.startsWith("/my-forms") || pathname.startsWith("/forms/");
+      const isProjectOrReport = pathname.startsWith("/projects") || pathname.startsWith("/reports");
+      
+      if (isClientUser && !isMyFormsPath) {
         router.replace("/my-forms");
+      } else if (isClientLeader && !isMyFormsPath && !isProjectOrReport) {
+        router.replace("/projects");
       }
     }
   }, [user, isLoading, router, pathname]);

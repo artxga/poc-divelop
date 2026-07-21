@@ -33,7 +33,9 @@ export function LoginPage() {
     await new Promise((r) => setTimeout(r, 600));
     const loggedUser = await login(email, password);
     if (loggedUser) {
-      if (loggedUser.role === "cliente" || loggedUser.role === "usuario_cliente") {
+      if (loggedUser.role === "cliente") {
+        router.push("/projects");
+      } else if (loggedUser.role === "usuario_cliente") {
         router.push("/my-forms");
       } else {
         router.push("/dashboard");

@@ -55,7 +55,7 @@ const NAV_ITEMS = [
     href: "/projects",
     icon: FolderOpen,
     description: "Recojo de información",
-    roles: ["admin", "consultor"],
+    roles: ["admin", "consultor", "cliente"],
   },
   {
     label: "Validación",
@@ -69,7 +69,7 @@ const NAV_ITEMS = [
     href: "/reports",
     icon: BarChart3,
     description: "Análisis y exportación",
-    roles: ["admin", "consultor"],
+    roles: ["admin", "consultor", "cliente"],
   },
 ];
 
