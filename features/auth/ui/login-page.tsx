@@ -53,7 +53,7 @@ export function LoginPage() {
   }
 
   return (
-    <div className="w-full max-w-md px-4">
+    <div className="w-full max-w-md px-4 relative z-10">
       {/* Logo */}
       <div className="flex flex-col items-center mb-8">
         <div className="w-14 h-14 rounded-2xl bg-emerald-500/15 border border-emerald-500/30 flex items-center justify-center mb-4">
