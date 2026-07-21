@@ -1,6 +1,7 @@
 "use client";
 
 import { usePathname } from "next/navigation";
+import Link from "next/link";
 import { useAuth } from "@/features/auth/api/auth-context";
 import { Bell, Search, Menu } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -13,6 +14,8 @@ const PAGE_TITLES: Record<string, string> = {
   "/projects": "Proyectos",
   "/validation": "Validación de Indicadores",
   "/reports": "Reportería y Análisis",
+  "/settings/roles": "Roles y Permisos",
+  "/profile": "Mi Perfil",
 };
 
 export function TopBar() {
@@ -42,11 +45,13 @@ export function TopBar() {
           <Bell className="w-4 h-4" />
           <span className="absolute top-1.5 right-1.5 w-1.5 h-1.5 rounded-full bg-emerald-400" />
         </Button>
-        <Avatar className="w-7 h-7 ml-1">
-          <AvatarFallback className="text-xs bg-emerald-500/20 text-emerald-300 font-semibold">
-            {user.avatar}
-          </AvatarFallback>
-        </Avatar>
+        <Link href="/profile">
+          <Avatar className="w-7 h-7 ml-1 hover:ring-2 ring-emerald-500/50 transition-all cursor-pointer">
+            <AvatarFallback className="text-xs bg-emerald-500/20 text-emerald-300 font-semibold">
+              {user.avatar}
+            </AvatarFallback>
+          </Avatar>
+        </Link>
       </div>
     </header>
   );

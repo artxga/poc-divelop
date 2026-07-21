@@ -23,12 +23,13 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
       const isMyFormsPath = pathname.startsWith("/my-forms") || pathname.startsWith("/forms/");
       const isProjectOrReport = pathname.startsWith("/projects") || pathname.startsWith("/reports");
       const isSettings = pathname.startsWith("/settings");
+      const isProfile = pathname.startsWith("/profile");
       
       if (isSettings && !isAdmin) {
         router.replace("/dashboard");
-      } else if (isClientUser && !isMyFormsPath) {
+      } else if (isClientUser && !isMyFormsPath && !isProfile) {
         router.replace("/my-forms");
-      } else if (isClientLeader && !isMyFormsPath && !isProjectOrReport) {
+      } else if (isClientLeader && !isMyFormsPath && !isProjectOrReport && !isProfile) {
         router.replace("/projects");
       }
     }
