@@ -6,14 +6,14 @@ import type { User } from "@/features/auth/model/types";
 
 interface AuthContextType {
   user: User | null;
-  login: (email: string, password: string) => Promise<boolean>;
+  login: (email: string, password: string) => Promise<User | null>;
   logout: () => void;
   isLoading: boolean;
 }
 
 const AuthContext = createContext<AuthContextType>({
   user: null,
-  login: async () => false,
+  login: async () => null,
   logout: () => {},
   isLoading: true,
 });
@@ -39,9 +39,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     if (foundUser) {
       setUser(foundUser);
       localStorage.setItem("auth_user_id", foundUser.id);
-      return true;
+      return foundUser;
     }
-    return false;
+    return null;
   };
 
   const logout = () => {

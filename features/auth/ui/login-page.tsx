@@ -31,9 +31,13 @@ export function LoginPage() {
     setLoading(true);
     // Small delay for UX
     await new Promise((r) => setTimeout(r, 600));
-    const ok = await login(email, password);
-    if (ok) {
-      router.push("/dashboard");
+    const loggedUser = await login(email, password);
+    if (loggedUser) {
+      if (loggedUser.role === "cliente" || loggedUser.role === "usuario_cliente") {
+        router.push("/my-forms");
+      } else {
+        router.push("/dashboard");
+      }
     } else {
       setError("Credenciales inválidas. Verifica tu email y contraseña.");
       setLoading(false);

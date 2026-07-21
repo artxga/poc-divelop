@@ -23,16 +23,25 @@ import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip
 
 const NAV_ITEMS = [
   {
+    label: "Mis Formularios",
+    href: "/my-forms",
+    icon: CheckSquare,
+    description: "Formularios asignados a ti",
+    roles: ["cliente", "usuario_cliente"],
+  },
+  {
     label: "Dashboard",
     href: "/dashboard",
     icon: LayoutDashboard,
     description: "Progreso y KPIs",
+    roles: ["admin", "consultor"],
   },
   {
     label: "Indicadores",
     href: "/indicators",
     icon: BookOpen,
     description: "Biblioteca de indicadores",
+    roles: ["admin", "consultor"],
   },
   {
     label: "Clientes",
@@ -46,18 +55,21 @@ const NAV_ITEMS = [
     href: "/projects",
     icon: FolderOpen,
     description: "Recojo de información",
+    roles: ["admin", "consultor"],
   },
   {
     label: "Validación",
     href: "/validation",
     icon: CheckSquare,
     description: "Flujo de estados",
+    roles: ["admin", "consultor"],
   },
   {
     label: "Reportes",
     href: "/reports",
     icon: BarChart3,
     description: "Análisis y exportación",
+    roles: ["admin", "consultor"],
   },
 ];
 

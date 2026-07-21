@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, usePathname } from "next/navigation";
 import { useAuth } from "@/features/auth/api/auth-context";
 import { Sidebar, TopBar } from "@/features/shared";
 import { Leaf } from "lucide-react";
@@ -10,11 +10,20 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   const { user, isLoading } = useAuth();
   const router = useRouter();
 
+  const pathname = usePathname();
+
   useEffect(() => {
     if (!isLoading && !user) {
       router.replace("/login");
+    } else if (user) {
+      const isClient = user.role === "cliente" || user.role === "usuario_cliente";
+      const isMyFormsPath = pathname.startsWith("/my-forms") || pathname.startsWith("/forms/");
+      
+      if (isClient && !isMyFormsPath) {
+        router.replace("/my-forms");
+      }
     }
-  }, [user, isLoading, router]);
+  }, [user, isLoading, router, pathname]);
 
   if (isLoading) {
     return (
