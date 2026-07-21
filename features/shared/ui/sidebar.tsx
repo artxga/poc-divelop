@@ -71,6 +71,13 @@ const NAV_ITEMS = [
     description: "Análisis y exportación",
     roles: ["admin", "consultor", "cliente"],
   },
+  {
+    label: "Roles y Permisos",
+    href: "/settings/roles",
+    icon: Shield,
+    description: "Configuración de acceso",
+    roles: ["admin"],
+  },
 ];
 
 const ROLE_CONFIG = {
