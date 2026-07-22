@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import React, { useState, useMemo } from "react";
 import { MOCK_GENERATED_REPORTS, downloadReport } from "../api/mock-reports";
 import {
   RESPONSES, INDICATORS, PROJECTS, FORM_SUBMISSIONS, FORM_TEMPLATES,
@@ -22,6 +22,16 @@ import {
 import { useAuth } from "@/features/auth/api/auth-context";
 import { ActivityTimeline } from "./activity-timeline";
 import { cn } from "@/lib/utils";
+
+// Inline styles for indicator badges — avoids Tailwind JIT purging on dynamic class names
+const INDICATOR_BADGE_STYLE: Record<string, React.CSSProperties> = {
+  GRI: { background: "rgba(16,185,129,0.12)", color: "#34d399", borderColor: "rgba(16,185,129,0.3)" },
+  SASB: { background: "rgba(59,130,246,0.12)", color: "#60a5fa", borderColor: "rgba(59,130,246,0.3)" },
+  ODS: { background: "rgba(245,158,11,0.12)", color: "#fbbf24", borderColor: "rgba(245,158,11,0.3)" },
+  TCFD: { background: "rgba(139,92,246,0.12)", color: "#a78bfa", borderColor: "rgba(139,92,246,0.3)" },
+  Manual: { background: "rgba(100,116,139,0.12)", color: "#94a3b8", borderColor: "rgba(100,116,139,0.3)" },
+  default: { background: "rgba(100,116,139,0.12)", color: "#94a3b8", borderColor: "rgba(100,116,139,0.3)" },
+};
 
 export function ReportsPage() {
   const { user } = useAuth();
@@ -169,7 +179,7 @@ export function ReportsPage() {
                             <span>Progreso</span>
                             <span className={cn("font-semibold",
                               sub.progress >= 80 ? "text-emerald-400" :
-                              sub.progress >= 50 ? "text-amber-400" : "text-red-400"
+                                sub.progress >= 50 ? "text-amber-400" : "text-red-400"
                             )}>{sub.progress}%</span>
                           </div>
                           <Progress value={sub.progress} className="h-2 bg-secondary" />
@@ -242,18 +252,19 @@ export function ReportsPage() {
                                   return (
                                     <TableRow key={idx} className="border-border/30 hover:bg-secondary/10 align-top">
                                       <TableCell className="pl-5 pt-3 max-w-[220px]">
-                                        <p className="text-xs text-foreground leading-relaxed">{r.questionText}</p>
+                                        <p className="text-xs text-foreground leading-relaxed whitespace-normal">{r.questionText}</p>
                                       </TableCell>
                                       <TableCell className="pt-3">
                                         <div className="flex flex-wrap gap-1">
-                                          {linkedIndicators.map((ind: any) => {
-                                            const estCfg = STANDARD_CONFIG[ind.standard as keyof typeof STANDARD_CONFIG];
-                                            return (
-                                              <span key={ind.id} className={`text-[10px] font-mono px-1.5 py-0.5 rounded border ${estCfg?.border ?? ""} ${estCfg?.bg ?? "bg-secondary"} ${estCfg?.color ?? "text-muted-foreground"}`}>
-                                                {ind.code}
-                                              </span>
-                                            );
-                                          })}
+                                          {linkedIndicators.map((ind: any) => (
+                                            <span
+                                              key={ind.id}
+                                              className="text-[10px] font-mono font-semibold px-1.5 py-0.5 rounded border"
+                                              style={INDICATOR_BADGE_STYLE[ind.standard] ?? INDICATOR_BADGE_STYLE.default}
+                                            >
+                                              {ind.code}
+                                            </span>
+                                          ))}
                                         </div>
                                       </TableCell>
                                       <TableCell className="pt-3">
