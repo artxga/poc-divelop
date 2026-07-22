@@ -132,3 +132,42 @@ export const STANDARD_DATA = [
   { estandar: "ODS", valor: 20, fill: "#f59e0b" },
   { estandar: "TCFD", valor: 10, fill: "#8b5cf6" },
 ];
+
+// ============================================================
+// ENHANCED REPORTING DATA
+// ============================================================
+
+/** Target values for each numerical indicator (GAP Analysis) */
+export const INDICATOR_TARGETS: Record<string, { target: number; unit: string; direction: "lower_is_better" | "higher_is_better" }> = {
+  "i1": { target: 40000, unit: "GJ",      direction: "lower_is_better" },
+  "i3": { target: 10000, unit: "tCO₂e",   direction: "lower_is_better" },
+  "i6": { target: 200,   unit: "personas", direction: "higher_is_better" },
+  "i9": { target: 100,   unit: "%",        direction: "higher_is_better" },
+  "i12": { target: 30,   unit: "%",        direction: "higher_is_better" },
+};
+
+/** Historical responses from the previous reporting period (2024) for YoY comparison */
+export const HISTORICAL_RESPONSES: Array<{ indicatorId: string; value: number; year: number }> = [
+  { indicatorId: "i1",  value: 51200,  year: 2024 },
+  { indicatorId: "i3",  value: 14800,  year: 2024 },
+  { indicatorId: "i6",  value: 98,     year: 2024 },
+  { indicatorId: "i9",  value: 62,     year: 2024 },
+  { indicatorId: "i12", value: 12,     year: 2024 },
+
+  { indicatorId: "i1",  value: 45230,  year: 2025 },
+  { indicatorId: "i3",  value: 11200,  year: 2025 },
+  { indicatorId: "i6",  value: 145,    year: 2025 },
+  { indicatorId: "i9",  value: 75,     year: 2025 },
+  { indicatorId: "i12", value: 20,     year: 2025 },
+];
+
+/** Timeline events for the activity view */
+export const TIMELINE_EVENTS = [
+  { id: "e1", projectId: "p1", type: "asignacion",  title: "Formulario asignado",            detail: "Métricas Ambientales → Juan Pérez",     date: "2025-02-01", actor: "Sofía Quispe"    },
+  { id: "e2", projectId: "p1", type: "asignacion",  title: "Formulario asignado",            detail: "Métricas Ambientales → Gabriela Tito",  date: "2025-02-01", actor: "Sofía Quispe"    },
+  { id: "e3", projectId: "p1", type: "envio",       title: "Formulario enviado",             detail: "Juan Pérez completó Métricas Ambientales", date: "2025-03-10", actor: "Juan Pérez"   },
+  { id: "e4", projectId: "p1", type: "aprobacion",  title: "Formulario aprobado",            detail: "Métricas Ambientales — Juan Pérez",     date: "2025-03-12", actor: "Sofía Quispe"    },
+  { id: "e5", projectId: "p1", type: "observacion", title: "Formulario con observación",     detail: "Falta completar Gobernanza",            date: "2025-03-15", actor: "Sofía Quispe"    },
+  { id: "e6", projectId: "p1", type: "envio",       title: "Formulario enviado",             detail: "Gabriela Tito envió Métricas Ambientales", date: "2025-04-02", actor: "Gabriela Tito" },
+];
+
