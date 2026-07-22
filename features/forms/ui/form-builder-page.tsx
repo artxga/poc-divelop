@@ -13,7 +13,6 @@ import {
   useSensors,
   DragStartEvent,
   DragEndEvent,
-  useDroppable,
 } from "@dnd-kit/core";
 import {
   SortableContext,
@@ -23,16 +22,16 @@ import {
 } from "@dnd-kit/sortable";
 import { PROJECTS, INDICATORS, USERS } from "@/features/shared/api/mock-db";
 import type { Indicator } from "@/features/indicators/model/types";
+import type { FormQuestion } from "@/features/forms/model/types";
 import { useAuth } from "@/features/auth/api/auth-context";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
-import { ChevronLeft, Plus, Save, Send, LayoutList } from "lucide-react";
+import { ChevronLeft, Plus, Save, Send, LayoutList, HelpCircle } from "lucide-react";
 import { IndicatorModal } from "@/features/indicators/ui/indicator-modal";
-import { cn } from "@/lib/utils";
 import { DraggableIndicator } from "./dnd-components/draggable-indicator";
-import { SortableIndicator } from "./dnd-components/sortable-indicator";
+import { SortableQuestion } from "./dnd-components/sortable-question";
 
 export function FormBuilderPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
@@ -43,7 +42,7 @@ export function FormBuilderPage({ params }: { params: Promise<{ id: string }> })
   
   // State
   const [formName, setFormName] = useState("");
-  const [formIndicators, setFormIndicators] = useState<Indicator[]>([]);
+  const [formQuestions, setFormQuestions] = useState<FormQuestion[]>([]);
   const [assignedUsers, setAssignedUsers] = useState<string[]>([]);
   const [indicatorsBank, setIndicatorsBank] = useState<Indicator[]>(INDICATORS);
   
@@ -58,10 +57,37 @@ export function FormBuilderPage({ params }: { params: Promise<{ id: string }> })
     useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
     useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates })
   );
-  
-  const { setNodeRef: setDroppableRef } = useDroppable({ id: "canvas" });
 
   if (!project || !user) return null;
+
+  const handleAddQuestion = () => {
+    setFormQuestions(prev => [
+      ...prev,
+      {
+        id: `q-${Date.now()}`,
+        text: "",
+        type: "numero",
+        indicatorIds: []
+      }
+    ]);
+  };
+
+  const updateQuestion = (updated: FormQuestion) => {
+    setFormQuestions(prev => prev.map(q => q.id === updated.id ? updated : q));
+  };
+
+  const removeQuestion = (qId: string) => {
+    setFormQuestions(prev => prev.filter(q => q.id !== qId));
+  };
+
+  const removeIndicatorFromQuestion = (qId: string, indicatorId: string) => {
+    setFormQuestions(prev => prev.map(q => {
+      if (q.id === qId) {
+        return { ...q, indicatorIds: q.indicatorIds.filter(id => id !== indicatorId) };
+      }
+      return q;
+    }));
+  };
 
   function handleDragStart(event: DragStartEvent) {
     setActiveDragId(event.active.id as string);
@@ -74,21 +100,28 @@ export function FormBuilderPage({ params }: { params: Promise<{ id: string }> })
     if (!over) return;
 
     const activeIdStr = String(active.id);
+    const overIdStr = String(over.id);
 
-    // Dropped from bank to canvas
-    if (activeIdStr.startsWith("bank-") && over.id === "canvas") {
+    // Dropped an indicator from bank into a question dropzone
+    if (activeIdStr.startsWith("bank-") && overIdStr.startsWith("drop-")) {
       const indId = activeIdStr.replace("bank-", "");
-      const indicator = indicatorsBank.find(i => i.id === indId);
-      if (indicator && !formIndicators.find(i => i.id === indId)) {
-        setFormIndicators((prev) => [...prev, indicator]);
+      const targetQuestionId = over.data.current?.questionId;
+      
+      if (targetQuestionId) {
+        setFormQuestions(prev => prev.map(q => {
+          if (q.id === targetQuestionId && !q.indicatorIds.includes(indId)) {
+            return { ...q, indicatorIds: [...q.indicatorIds, indId] };
+          }
+          return q;
+        }));
       }
       return;
     }
 
-    // Reordering within canvas
-    if (!activeIdStr.startsWith("bank-") && over.id !== "canvas") {
+    // Reordering questions within canvas
+    if (active.data.current?.type === "question" && over.data.current?.type === "question") {
       if (active.id !== over.id) {
-        setFormIndicators((items) => {
+        setFormQuestions((items) => {
           const oldIndex = items.findIndex((i) => i.id === active.id);
           const newIndex = items.findIndex((i) => i.id === over.id);
           return arrayMove(items, oldIndex, newIndex);
@@ -103,8 +136,8 @@ export function FormBuilderPage({ params }: { params: Promise<{ id: string }> })
   };
 
   const handleSave = (status: "borrador" | "enviado") => {
-    if (!formName || formIndicators.length === 0) {
-      alert("Debes ingresar un nombre y agregar al menos un indicador.");
+    if (!formName || formQuestions.length === 0) {
+      alert("Debes ingresar un nombre y agregar al menos una pregunta.");
       return;
     }
     if (status === "enviado" && assignedUsers.length === 0) {
@@ -112,14 +145,13 @@ export function FormBuilderPage({ params }: { params: Promise<{ id: string }> })
       return;
     }
     
-    // Aquí en un entorno real se haría un POST al backend
     alert(`Formulario guardado como ${status}. Serás redirigido.`);
     router.push(`/projects/${project.id}`);
   };
 
   const activeIndicator = activeDragId?.startsWith("bank-") 
     ? indicatorsBank.find(i => i.id === activeDragId.replace("bank-", ""))
-    : formIndicators.find(i => i.id === activeDragId);
+    : null;
 
   return (
     <div className="h-[calc(100vh-8rem)] flex flex-col space-y-4">
@@ -157,7 +189,7 @@ export function FormBuilderPage({ params }: { params: Promise<{ id: string }> })
             <div className="p-4 border-b border-border/50 flex flex-col gap-3">
               <h2 className="font-semibold text-sm flex items-center gap-2">
                 <LayoutList className="w-4 h-4 text-emerald-400" /> 
-                Banco de Indicadores
+                Catálogo de Indicadores
               </h2>
               <Button 
                 variant="outline" 
@@ -169,6 +201,9 @@ export function FormBuilderPage({ params }: { params: Promise<{ id: string }> })
               </Button>
             </div>
             <div className="flex-1 overflow-y-auto p-3">
+              <p className="text-xs text-muted-foreground mb-3 px-1">
+                Arrastra indicadores hacia las preguntas del lienzo para vincularlos.
+              </p>
               <div className="grid grid-cols-2 lg:grid-cols-1 gap-2">
                 {indicatorsBank.map((ind) => (
                   <DraggableIndicator key={ind.id} indicator={ind} />
@@ -179,38 +214,40 @@ export function FormBuilderPage({ params }: { params: Promise<{ id: string }> })
 
           {/* Panel Central: Lienzo del Formulario */}
           <Card className="flex-1 flex flex-col bg-card/40 border-border/50 min-h-[400px]">
-            <div className="p-6 border-b border-border/50 shrink-0">
+            <div className="p-6 border-b border-border/50 shrink-0 flex items-center justify-between gap-4">
               <Input 
                 value={formName}
                 onChange={(e) => setFormName(e.target.value)}
                 placeholder="Nombre del formulario (Ej: Reporte Ambiental 2025)..."
-                className="text-2xl font-bold h-14 bg-transparent border-transparent hover:border-border focus-visible:ring-0 focus-visible:border-emerald-500/50 px-2"
+                className="text-2xl font-bold h-14 bg-transparent border-transparent hover:border-border focus-visible:ring-0 focus-visible:border-emerald-500/50 px-2 flex-1"
               />
+              <Button onClick={handleAddQuestion} className="bg-blue-600 hover:bg-blue-500 text-white shrink-0 gap-2">
+                <Plus className="w-4 h-4" /> Agregar Pregunta
+              </Button>
             </div>
             
-            <div 
-              ref={setDroppableRef} 
-              className={cn(
-                "flex-1 p-6 overflow-y-auto bg-gradient-to-b from-transparent to-secondary/5",
-                activeDragId?.startsWith("bank-") && "bg-emerald-500/5 border-2 border-dashed border-emerald-500/30 rounded-b-xl"
-              )}
-            >
-              <div className="max-w-2xl mx-auto space-y-3 pb-20">
-                {formIndicators.length === 0 ? (
+            <div className="flex-1 p-6 overflow-y-auto bg-gradient-to-b from-transparent to-secondary/5">
+              <div className="max-w-3xl mx-auto space-y-4 pb-20">
+                {formQuestions.length === 0 ? (
                   <div className="h-48 flex flex-col items-center justify-center border-2 border-dashed border-border/50 rounded-xl text-muted-foreground bg-card/30">
-                    <LayoutList className="w-8 h-8 mb-3 opacity-20" />
-                    <p>Arrastra indicadores desde el panel izquierdo hacia aquí</p>
+                    <HelpCircle className="w-8 h-8 mb-3 opacity-20" />
+                    <p>Comienza agregando preguntas al formulario</p>
                   </div>
                 ) : (
-                  <SortableContext items={formIndicators.map(i => i.id)} strategy={verticalListSortingStrategy}>
-                    {formIndicators.map((ind) => (
-                      <SortableIndicator 
-                        key={ind.id} 
-                        id={ind.id} 
-                        indicator={ind} 
-                        onRemove={() => setFormIndicators(prev => prev.filter(i => i.id !== ind.id))}
-                      />
-                    ))}
+                  <SortableContext items={formQuestions.map(q => q.id)} strategy={verticalListSortingStrategy}>
+                    {formQuestions.map((q) => {
+                      const qIndicators = q.indicatorIds.map(id => indicatorsBank.find(i => i.id === id)).filter(Boolean) as Indicator[];
+                      return (
+                        <SortableQuestion 
+                          key={q.id} 
+                          question={q} 
+                          indicators={qIndicators}
+                          onUpdate={updateQuestion}
+                          onRemove={() => removeQuestion(q.id)}
+                          onRemoveIndicator={(indId) => removeIndicatorFromQuestion(q.id, indId)}
+                        />
+                      );
+                    })}
                   </SortableContext>
                 )}
               </div>
@@ -256,11 +293,7 @@ export function FormBuilderPage({ params }: { params: Promise<{ id: string }> })
         <DragOverlay dropAnimation={{ duration: 150, easing: "cubic-bezier(0.18, 0.67, 0.6, 1.22)" }}>
           {activeIndicator ? (
             <div className="opacity-90 rotate-2 scale-105 shadow-2xl">
-              {activeDragId?.startsWith("bank-") ? (
-                <DraggableIndicator indicator={activeIndicator} />
-              ) : (
-                <SortableIndicator id={activeIndicator.id} indicator={activeIndicator} onRemove={() => {}} />
-              )}
+              <DraggableIndicator indicator={activeIndicator} />
             </div>
           ) : null}
         </DragOverlay>

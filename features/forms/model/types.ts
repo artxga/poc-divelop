@@ -1,10 +1,20 @@
 import type { UserRole } from "@/features/auth/model/types";
 
+export type QuestionType = "texto" | "numero" | "booleano" | "seleccion" | "archivo";
+
+export interface FormQuestion {
+  id: string;
+  text: string;
+  type: QuestionType;
+  options?: string[];
+  indicatorIds: string[];
+}
+
 export interface FormTemplate {
   id: string;
   projectId: string;
   name: string;
-  indicators: string[];
+  questions: FormQuestion[];
 }
 
 export type FormStatus = "borrador" | "enviado" | "observado" | "aprobado";
@@ -18,10 +28,10 @@ export interface FormSubmission {
   progress: number;
 }
 
-export interface IndicatorResponse {
+export interface QuestionResponse {
   id: string;
   submissionId: string;
-  indicatorId: string;
+  questionId: string;
   value: string | number | boolean | null;
 }
 

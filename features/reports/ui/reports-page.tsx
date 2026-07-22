@@ -67,8 +67,22 @@ export function ReportsPage() {
   const [projectFilter, setProjectFilter] = useState("todos");
   const [standardFilter, setStandardFilter] = useState("todos");
 
+  // Map responses to their respective indicators
+  const indicatorResponses = RESPONSES.flatMap((r) => {
+    const submission = FORM_SUBMISSIONS.find((f) => f.id === r.submissionId);
+    const template = FORM_TEMPLATES.find((t) => t.id === submission?.templateId);
+    const question = template?.questions.find(q => q.id === r.questionId);
+    if (!question) return [];
+    
+    return question.indicatorIds.map(indId => ({
+      ...r,
+      indicatorId: indId,
+      questionText: question.text
+    }));
+  });
+
   function exportCSV() {
-    const rows = RESPONSES.map((r) => {
+    const rows = indicatorResponses.map((r) => {
       const ind = INDICATORS.find((i) => i.id === r.indicatorId);
       const submission = FORM_SUBMISSIONS.find((f) => f.id === r.submissionId);
       const template = FORM_TEMPLATES.find((t) => t.id === submission?.templateId);
@@ -77,6 +91,7 @@ export function ReportsPage() {
       return [
         proy?.name ?? "",
         `${template?.name} - ${submission?.userEmail}`,
+        `"${r.questionText}"`,
         ind?.code ?? "",
         ind?.name ?? "",
         ind?.standard ?? "",
@@ -86,7 +101,7 @@ export function ReportsPage() {
         ind?.unit ?? "",
       ].join(",");
     });
-    const header = "Proyecto,Formulario,Código,Indicador,Estándar,Categoría,Estado Formulario,Valor,Unidad";
+    const header = "Proyecto,Formulario,Pregunta,Código,Indicador,Estándar,Categoría,Estado Formulario,Valor,Unidad";
     const csv = [header, ...rows].join("\n");
     const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
     const url = URL.createObjectURL(blob);
@@ -104,12 +119,11 @@ export function ReportsPage() {
     return p.clientId === user.clientId;
   });
 
-  const filteredResponses = RESPONSES.filter((r) => {
+  const filteredResponses = indicatorResponses.filter((r) => {
     const ind = INDICATORS.find((i) => i.id === r.indicatorId);
     const submission = FORM_SUBMISSIONS.find((f) => f.id === r.submissionId);
     const proy = filteredProjects.find(p => p.id === submission?.projectId);
 
-    // Si el proyecto del submission no está en los proyectos permitidos del usuario, ocultar
     if (!proy) return false;
 
     const matchProy = projectFilter === "todos" || submission?.projectId === projectFilter;
@@ -289,7 +303,7 @@ export function ReportsPage() {
                 const statusCfg = submission ? FORM_STATUS_CONFIG[submission.status as keyof typeof FORM_STATUS_CONFIG] : null;
 
                 return (
-                  <TableRow key={r.id} className="border-border/30 hover:bg-secondary/20">
+                  <TableRow key={`${r.id}-${r.indicatorId}`} className="border-border/30 hover:bg-secondary/20">
                     <TableCell className="pl-6">
                       <div>
                         <p className="text-xs font-mono text-muted-foreground">{ind?.code}</p>

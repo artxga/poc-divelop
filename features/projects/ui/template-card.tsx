@@ -37,7 +37,7 @@ export function TemplateCard({ template, projectId, submissions, user, isAdminOr
             <h2 className="font-semibold text-base mb-1.5 truncate">{template.name}</h2>
             <div className="flex flex-wrap gap-1.5 mb-3">
               <span className="text-xs px-2 py-0.5 rounded-full border border-emerald-500/20 bg-emerald-500/10 text-emerald-400 font-medium">
-                {template.indicators.length} indicadores
+                {template.questions.length} preguntas
               </span>
             </div>
             <p className="text-xs text-muted-foreground flex items-center gap-1.5 mb-4">

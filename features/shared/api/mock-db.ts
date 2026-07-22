@@ -5,7 +5,7 @@ import type { Indicator } from "@/features/indicators/model/types";
 import type { 
   FormTemplate, 
   FormSubmission, 
-  IndicatorResponse, 
+  QuestionResponse, 
   Comment, 
   HistoryEvent 
 } from "@/features/forms/model/types";
@@ -32,8 +32,25 @@ export const PROJECTS: Project[] = [
 ];
 
 export const FORM_TEMPLATES: FormTemplate[] = [
-  { id: "ft1", projectId: "p1", name: "Métricas Ambientales Sede Norte", indicators: ["i1", "i3", "i12", "i16"] },
-  { id: "ft2", projectId: "p1", name: "Indicadores Sociales y de Gobernanza", indicators: ["i6", "i9", "i16"] },
+  { 
+    id: "ft1", 
+    projectId: "p1", 
+    name: "Métricas Ambientales Sede Norte", 
+    questions: [
+      { id: "q1", text: "Indique el consumo de energía eléctrica total (GJ)", type: "numero", indicatorIds: ["i1"] },
+      { id: "q2", text: "¿Cuenta el Consejo con un mecanismo formal de supervisión climática?", type: "booleano", indicatorIds: ["i16"] },
+      { id: "q3", text: "Describa el origen y porcentaje de las energías renovables utilizadas.", type: "texto", indicatorIds: ["i12", "i3"] }
+    ] 
+  },
+  { 
+    id: "ft2", 
+    projectId: "p1", 
+    name: "Indicadores Sociales y de Gobernanza", 
+    questions: [
+      { id: "q4", text: "Número total de nuevas contrataciones en el periodo", type: "numero", indicatorIds: ["i6"] },
+      { id: "q5", text: "Porcentaje de operaciones que han sido evaluadas por riesgos de corrupción", type: "numero", indicatorIds: ["i9"] },
+    ]
+  },
 ];
 
 export const FORM_SUBMISSIONS: FormSubmission[] = [
@@ -51,13 +68,13 @@ export const INDICATORS: Indicator[] = [
   { id: "i12", code: "ODS 7.2", name: "Participación de energías renovables", description: "Porcentaje de energía renovable.", standard: "ODS", category: "Ambiental", dataType: "porcentaje", unit: "%" },
 ];
 
-export const RESPONSES: IndicatorResponse[] = [
-  { id: "r1", submissionId: "fe1", indicatorId: "i1", value: 45230 },
-  { id: "r2", submissionId: "fe1", indicatorId: "i3", value: 12450 },
-  { id: "r3", submissionId: "fe1", indicatorId: "i16", value: true },
+export const RESPONSES: QuestionResponse[] = [
+  { id: "r1", submissionId: "fe1", questionId: "q1", value: 45230 },
+  { id: "r2", submissionId: "fe1", questionId: "q2", value: true },
+  { id: "r3", submissionId: "fe1", questionId: "q3", value: "El 20% provino de paneles solares propios, compensando las emisiones directas." },
   
-  { id: "r4", submissionId: "fe3", indicatorId: "i6", value: 145 },
-  { id: "r5", submissionId: "fe3", indicatorId: "i9", value: null },
+  { id: "r4", submissionId: "fe3", questionId: "q4", value: 145 },
+  { id: "r5", submissionId: "fe3", questionId: "q5", value: null },
 ];
 
 export const COMMENTS: Comment[] = [

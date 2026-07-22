@@ -16,7 +16,7 @@ import {
   FORM_STATUS_CONFIG,
   USERS,
 } from "@/features/shared/api/mock-db";
-import type { IndicatorResponse } from "@/features/forms/model/types";
+import type { QuestionResponse } from "@/features/forms/model/types";
 import type { Indicator } from "@/features/indicators/model/types";
 import { useAuth } from "@/features/auth/api/auth-context";
 import { Card, CardContent } from "@/components/ui/card";
@@ -58,9 +58,9 @@ export function FormDetailPage({ params }: { params: Promise<{ id: string }> }) 
   const [activeTab, setActiveTab] = useState<string>("indicadores");
   
   // Respuestas State
-  const [responses, setResponses] = useState<Record<string, IndicatorResponse>>(() => {
-    const map: Record<string, IndicatorResponse> = {};
-    RESPONSES.filter((r) => r.submissionId === id).forEach((r) => { map[r.indicatorId] = r as any; });
+  const [responses, setResponses] = useState<Record<string, QuestionResponse>>(() => {
+    const map: Record<string, QuestionResponse> = {};
+    RESPONSES.filter((r) => r.submissionId === id).forEach((r) => { map[r.questionId] = r as any; });
     return map;
   });
 
@@ -72,11 +72,11 @@ export function FormDetailPage({ params }: { params: Promise<{ id: string }> }) 
   const statusCfg = FORM_STATUS_CONFIG[submission.status as keyof typeof FORM_STATUS_CONFIG];
   const disabled = submission.status === "aprobado" || submission.status === "enviado";
 
-  function updateValue(indicatorId: string, value: string | number | boolean) {
+  function updateValue(questionId: string, value: string | number | boolean) {
     setResponses((prev) => ({
       ...prev,
-      [indicatorId]: {
-        ...(prev[indicatorId] ?? { id: `new-${indicatorId}`, submissionId: id, indicatorId }),
+      [questionId]: {
+        ...(prev[questionId] ?? { id: `new-${questionId}`, submissionId: id, questionId }),
         value,
       },
     }));
@@ -100,72 +100,7 @@ export function FormDetailPage({ params }: { params: Promise<{ id: string }> }) 
     setCommentInput("");
   }
 
-  function renderInput(ind: Indicator) {
-    const value = responses[ind.id]?.value;
 
-    switch (ind.dataType) {
-      case "numero":
-      case "porcentaje":
-        return (
-          <div className="flex gap-2">
-            <Input
-              type="number"
-              placeholder="0"
-              value={(value as number) ?? ""}
-              disabled={disabled}
-              onChange={(e) => updateValue(ind.id, parseFloat(e.target.value) || 0)}
-              className="w-48"
-            />
-            {ind.unit && <span className="flex items-center text-sm text-muted-foreground">{ind.unit}</span>}
-          </div>
-        );
-      case "texto":
-        return (
-          <Textarea
-            placeholder="Ingresa una descripción..."
-            value={(value as string) ?? ""}
-            disabled={disabled}
-            onChange={(e) => updateValue(ind.id, e.target.value)}
-            rows={3}
-            className="max-w-xl"
-          />
-        );
-      case "booleano":
-        return (
-          <div className="flex items-center gap-3">
-            {[true, false].map((v) => (
-              <label key={String(v)} className="flex items-center gap-2 cursor-pointer">
-                <Checkbox
-                  checked={value === v}
-                  disabled={disabled}
-                  onCheckedChange={() => updateValue(ind.id, v)}
-                />
-                <span className="text-sm">{v ? "Sí" : "No"}</span>
-              </label>
-            ))}
-          </div>
-        );
-      case "seleccion":
-        return (
-          <Select
-            value={(value as string) ?? ""}
-            disabled={disabled}
-            onValueChange={(v) => updateValue(ind.id, v)}
-          >
-            <SelectTrigger className="w-48">
-              <SelectValue placeholder="Selecciona..." />
-            </SelectTrigger>
-            <SelectContent>
-              {(ind.options ?? []).map((opt) => (
-                <SelectItem key={opt} value={opt}>{opt}</SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        );
-      default:
-        return null;
-    }
-  }
 
   return (
     <div className="space-y-5 h-full flex flex-col">
@@ -211,41 +146,133 @@ export function FormDetailPage({ params }: { params: Promise<{ id: string }> }) 
         </TabsList>
 
         <TabsContent value="indicadores" className="flex-1 min-h-0 mt-4 data-[state=active]:flex flex-col gap-4">
-          <div className="flex-1 overflow-y-auto space-y-3 pr-2 pb-10">
-            {INDICATORS.filter((i) => template?.indicators.includes(i.id)).map((ind) => {
-              const catCfg = CATEGORY_CONFIG[ind.category as keyof typeof CATEGORY_CONFIG];
-              return (
-                <Card key={ind.id} className="border-border/50 bg-card/60 backdrop-blur-sm">
-                  <CardContent className="pt-4 pb-4">
-                    <div className="flex flex-col sm:flex-row gap-4">
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-2 mb-2">
-                          <span className="font-mono text-xs text-muted-foreground">{ind.code}</span>
-                          <div className={`flex items-center gap-1 text-xs ${catCfg.color}`}>
-                            <div className={`w-1.5 h-1.5 rounded-full ${catCfg.dot}`} />
-                            {ind.category}
-                          </div>
-                          <span className="text-xs px-2 py-0.5 rounded-full border border-border/50 text-muted-foreground ml-auto">
-                            {ind.standard}
-                          </span>
-                        </div>
-                        <p className="font-medium text-sm">{ind.name}</p>
-                        <p className="text-xs text-muted-foreground mt-1">{ind.description}</p>
-                        
-                        <div className="mt-4">
-                          {renderInput(ind)}
-                        </div>
+          <div className="flex-1 overflow-y-auto space-y-4 pr-2 pb-10">
+            {(() => {
+              if (!template?.questions || template.questions.length === 0) {
+                return (
+                  <p className="text-sm text-muted-foreground p-4 text-center border border-dashed border-border/50 rounded-lg bg-card/30">
+                    No hay preguntas configuradas en este formulario.
+                  </p>
+                );
+              }
+
+              // Group questions by their indicatorIds signature
+              const groups: Record<string, typeof template.questions> = {};
+              template.questions.forEach((q) => {
+                const sig = [...q.indicatorIds].sort().join(",");
+                if (!groups[sig]) groups[sig] = [];
+                groups[sig].push(q);
+              });
+
+              return Object.entries(groups).map(([sig, questions], idx) => {
+                const groupIndicators = sig 
+                  ? sig.split(",").map(id => INDICATORS.find(i => i.id === id)).filter(Boolean) as Indicator[]
+                  : [];
+
+                return (
+                  <Card key={`group-${idx}`} className="border-border/50 bg-card/60 backdrop-blur-sm overflow-hidden">
+                    {groupIndicators.length > 0 && (
+                      <div className="bg-secondary/30 border-b border-border/50 p-3 px-4 flex flex-wrap gap-2 items-center">
+                        <span className="text-xs font-semibold text-muted-foreground mr-2">INDICADORES ASOCIADOS:</span>
+                        {groupIndicators.map(ind => {
+                          const catCfg = CATEGORY_CONFIG[ind.category as keyof typeof CATEGORY_CONFIG];
+                          return (
+                            <div key={ind.id} className={`flex items-center gap-1.5 px-2.5 py-1 rounded-md border text-xs ${catCfg.bg} ${catCfg.border} ${catCfg.color}`}>
+                              <span className="font-mono opacity-70">{ind.code}</span>
+                              <span className="font-medium">{ind.name}</span>
+                            </div>
+                          );
+                        })}
                       </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              );
-            })}
-            {(!template?.indicators || template.indicators.length === 0) && (
-              <p className="text-sm text-muted-foreground p-4 text-center border border-dashed border-border/50 rounded-lg bg-card/30">
-                No hay indicadores configurados en este formulario.
-              </p>
-            )}
+                    )}
+                    <CardContent className="p-0">
+                      <div className="divide-y divide-border/30">
+                        {questions.map((q, qIdx) => (
+                          <div key={q.id} className="p-5 flex flex-col sm:flex-row gap-6 hover:bg-secondary/10 transition-colors">
+                            <div className="flex-1">
+                              <p className="font-medium text-sm text-foreground">
+                                <span className="text-muted-foreground mr-2">{qIdx + 1}.</span>
+                                {q.text}
+                              </p>
+                            </div>
+                            <div className="w-full sm:w-80 shrink-0">
+                              {(() => {
+                                const value = responses[q.id]?.value;
+                                switch (q.type) {
+                                  case "numero":
+                                    return (
+                                      <Input
+                                        type="number"
+                                        placeholder="0"
+                                        value={(value as number) ?? ""}
+                                        disabled={disabled}
+                                        onChange={(e) => updateValue(q.id, parseFloat(e.target.value) || 0)}
+                                      />
+                                    );
+                                  case "texto":
+                                    return (
+                                      <Textarea
+                                        placeholder="Escribe tu respuesta..."
+                                        value={(value as string) ?? ""}
+                                        disabled={disabled}
+                                        onChange={(e) => updateValue(q.id, e.target.value)}
+                                        rows={3}
+                                      />
+                                    );
+                                  case "booleano":
+                                    return (
+                                      <div className="flex items-center gap-4 h-10">
+                                        {[true, false].map((v) => (
+                                          <label key={String(v)} className="flex items-center gap-2 cursor-pointer">
+                                            <Checkbox
+                                              checked={value === v}
+                                              disabled={disabled}
+                                              onCheckedChange={() => updateValue(q.id, v)}
+                                            />
+                                            <span className="text-sm font-medium">{v ? "Sí" : "No"}</span>
+                                          </label>
+                                        ))}
+                                      </div>
+                                    );
+                                  case "seleccion":
+                                    return (
+                                      <Select
+                                        value={(value as string) ?? ""}
+                                        disabled={disabled}
+                                        onValueChange={(v) => updateValue(q.id, v)}
+                                      >
+                                        <SelectTrigger>
+                                          <SelectValue placeholder="Selecciona una opción..." />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                          {(q.options ?? []).map((opt) => (
+                                            <SelectItem key={opt} value={opt}>{opt}</SelectItem>
+                                          ))}
+                                        </SelectContent>
+                                      </Select>
+                                    );
+                                  case "archivo":
+                                    return (
+                                      <div className="flex items-center gap-2">
+                                        <Button variant="outline" size="sm" disabled={disabled} className="w-full justify-start text-muted-foreground border-dashed">
+                                          <Paperclip className="w-4 h-4 mr-2" /> 
+                                          {value ? "Cambiar archivo adjunto" : "Subir evidencia (PDF, Imagen)"}
+                                        </Button>
+                                      </div>
+                                    );
+                                  default:
+                                    return null;
+                                }
+                              })()}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </CardContent>
+                  </Card>
+                );
+              });
+            })()}
           </div>
         </TabsContent>
 

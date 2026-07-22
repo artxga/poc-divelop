@@ -213,7 +213,7 @@ export function DashboardPage() {
                     <p className="text-xs text-muted-foreground">{project?.name}</p>
                     <div className="flex flex-wrap gap-1 mt-2">
                       <span className="text-xs bg-secondary px-1.5 py-0.5 rounded text-muted-foreground">
-                        {template?.indicators.length} indicadores
+                        {template?.questions.length} preguntas
                       </span>
                     </div>
                   </div>
