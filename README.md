@@ -1,36 +1,59 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Divelop PoC - Frontend
 
-## Getting Started
+Plataforma de reporte de sostenibilidad (ESG) para la gestión de indicadores bajo estándares (GRI, SASB, ODS, TCFD). Este proyecto sirve como Prueba de Concepto (PoC) para validar la usabilidad, arquitectura base y el modelado inicial del negocio desde el lado del cliente.
 
-First, run the development server:
+## 🚀 Tecnologías Principales
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+- **Framework:** [Next.js 14/15](https://nextjs.org/) (App Router)
+- **Lenguaje:** [TypeScript](https://www.typescriptlang.org/) / React 19
+- **Estilos:** [Tailwind CSS v4](https://tailwindcss.com/)
+- **Componentes UI:** [Radix UI](https://www.radix-ui.com/) (con aproximación de Shadcn)
+- **Drag & Drop:** [@dnd-kit](https://docs.dndkit.com/) (para el constructor de formularios)
+- **Gráficos:** [Recharts](https://recharts.org/)
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## 📂 Arquitectura (Feature-Sliced Design - Lite)
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+El código fuente está estructurado organizando los módulos por "características" (features) de negocio, en lugar de agrupar por tipo de archivo, lo que permite un mejor encapsulamiento y escalabilidad.
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+- `app/`: Enrutamiento y layouts principales de Next.js.
+- `components/`: Componentes genéricos e independientes del dominio (Botones, Inputs, Modales de UI base).
+- `features/`: Lógica de negocio, dividida por módulos:
+  - `auth`: Autenticación (mockeada actualmente).
+  - `clients`: Gestión de clientes corporativos.
+  - `dashboard`: Vistas de resúmenes.
+  - `forms`: Generador dinámico de formularios (DnD).
+  - `indicators`: Catálogo de indicadores y estándares ESG.
+  - `projects`: Gestión de proyectos asignados a clientes.
+  - `reports`: Motor de reporte, timeline y analítica.
+  - `settings`: Configuración y roles.
+  - `shared`: Contexto compartido (como la Base de Datos Mockeada actual).
+  - `validation`: Tablero Kanban de validación de entregas.
+- `lib/`: Utilidades genéricas (ej. `cn` para Tailwind).
 
-## Learn More
+## ⚙️ Configuración y Ejecución
 
-To learn more about Next.js, take a look at the following resources:
+1. **Instalar dependencias:**
+   Recomendamos usar `pnpm`:
+   ```bash
+   pnpm install
+   ```
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+2. **Ejecutar el servidor de desarrollo:**
+   ```bash
+   pnpm dev
+   ```
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+3. Abrir el navegador en [http://localhost:3000](http://localhost:3000).
 
-## Deploy on Vercel
+## 🛠 Comandos Útiles
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+- `pnpm dev`: Inicia el servidor de desarrollo.
+- `pnpm build`: Construye la aplicación para producción.
+- `pnpm start`: Inicia el servidor de producción.
+- `pnpm lint`: Ejecuta ESLint para revisión de código estático.
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## 📋 Estado Actual (PoC)
+
+Esta aplicación funciona actualmente de manera estática y sincrónica mediante un servicio simulado (Mock DB). No requiere conexión a un backend real para operar sus características principales durante la fase de PoC. Para un despliegue en producción, se requiere reemplazar la capa de datos.
+
+> Para revisar el detalle de mejoras técnicas pendientes y evaluación de la deuda técnica de este PoC, revisa el archivo `technical_debt_report.md`.
